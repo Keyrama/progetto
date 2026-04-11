@@ -1,0 +1,106 @@
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-bold mb-1"><i class="bi bi-grid-3x3-gap me-2 text-success"></i>Gestione Catalogo</h4>
+      <small class="text-muted">Ruolo: <span class="badge bg-dark">CORPORATE</span></small>
+    </div>
+    <button class="btn btn-primary" (click)="openCreate()">
+      <i class="bi bi-plus-lg me-2"></i>Nuovo prodotto
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" role="status"></div>
+  </div>
+
+  <!-- Tabella prodotti -->
+  <div *ngIf="!loading" class="card border-0 shadow-sm rounded-3">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Prodotto</th>
+            <th>Brand</th>
+            <th>Categoria</th>
+            <th class="text-center">Score</th>
+            <th class="text-center">Clean</th>
+            <th class="text-end">Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of products">
+            <td>
+              <span class="fw-semibold">{{ p.name }}</span>
+            </td>
+            <td class="text-muted small">{{ p.brand }}</td>
+            <td>
+              <span *ngIf="p.category" class="badge bg-light text-secondary border">
+                {{ p.category.name }}
+              </span>
+            </td>
+            <td class="text-center">
+              <span [class]="'score-badge d-inline-flex ' + scoreClass(p.healthScore)"
+                    style="width:36px;height:36px;font-size:.8rem;">
+                {{ p.healthScore }}
+              </span>
+            </td>
+            <td class="text-center">
+              <i *ngIf="p.isCleanLabel"  class="bi bi-check-circle-fill text-success fs-5"></i>
+              <i *ngIf="!p.isCleanLabel" class="bi bi-x-circle text-muted fs-5"></i>
+            </td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-secondary me-1"
+                      (click)="openEdit(p)" title="Modifica">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger"
+                      (click)="confirmDelete(p)" title="Elimina">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modale form -->
+  <div class="modal-backdrop-custom" *ngIf="showForm" (click)="closeForm()"></div>
+  <div class="modal-panel" *ngIf="showForm">
+    <app-product-form
+      [product]="selectedProduct"
+      [categories]="categories"
+      (saved)="onSaved($event)"
+      (cancelled)="closeForm()">
+    </app-product-form>
+  </div>
+
+  <!-- Toast conferma -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div *ngIf="toastMsg" class="toast show align-items-center text-bg-success border-0">
+      <div class="d-flex">
+        <div class="toast-body"><i class="bi bi-check-circle me-2"></i>{{ toastMsg }}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="toastMsg=''"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale conferma elimina -->
+  <div class="modal-backdrop-custom" *ngIf="productToDelete" (click)="productToDelete=null"></div>
+  <div *ngIf="productToDelete" class="delete-confirm-modal card border-0 shadow-lg rounded-3 p-4">
+    <h6 class="fw-bold mb-2"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Conferma eliminazione</h6>
+    <p class="text-muted small mb-3">
+      Stai per eliminare <strong>{{ productToDelete.name }}</strong>. L'operazione non è reversibile.
+    </p>
+    <div class="d-flex gap-2 justify-content-end">
+      <button class="btn btn-sm btn-outline-secondary" (click)="productToDelete=null">Annulla</button>
+      <button class="btn btn-sm btn-danger" (click)="doDelete()">
+        <i class="bi bi-trash me-1"></i>Elimina
+      </button>
+    </div>
+  </div>
+
+</div>

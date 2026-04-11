@@ -1,0 +1,107 @@
+<div class="card border-0 p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="fw-bold mb-0">
+      <i class="bi bi-{{ product ? 'pencil' : 'plus-circle' }} me-2 text-success"></i>
+      {{ product ? 'Modifica prodotto' : 'Nuovo prodotto' }}
+    </h5>
+    <button class="btn btn-sm btn-outline-secondary" (click)="cancelled.emit()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+    <!-- Nome + Brand -->
+    <div class="row g-3 mb-3">
+      <div class="col-sm-7">
+        <label class="form-label small fw-semibold">Nome *</label>
+        <input class="form-control" formControlName="name" placeholder="Nome prodotto"
+               [class.is-invalid]="f['name'].invalid && f['name'].touched" />
+        <div class="invalid-feedback">Campo obbligatorio</div>
+      </div>
+      <div class="col-sm-5">
+        <label class="form-label small fw-semibold">Brand *</label>
+        <input class="form-control" formControlName="brand" placeholder="Produttore"
+               [class.is-invalid]="f['brand'].invalid && f['brand'].touched" />
+        <div class="invalid-feedback">Campo obbligatorio</div>
+      </div>
+    </div>
+
+    <!-- Descrizione -->
+    <div class="mb-3">
+      <label class="form-label small fw-semibold">Descrizione</label>
+      <textarea class="form-control" formControlName="description" rows="2"
+                placeholder="Breve descrizione del prodotto"></textarea>
+    </div>
+
+    <!-- Categoria + Clean Label -->
+    <div class="row g-3 mb-3">
+      <div class="col-sm-7">
+        <label class="form-label small fw-semibold">Categoria</label>
+        <select class="form-select" formControlName="categoryId">
+          <option [ngValue]="null">— Seleziona —</option>
+          <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
+        </select>
+      </div>
+      <div class="col-sm-5 d-flex align-items-end pb-1">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="cleanLabel" formControlName="isCleanLabel" />
+          <label class="form-check-label" for="cleanLabel">
+            <i class="bi bi-leaf text-success me-1"></i>Clean Label
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Valori nutrizionali -->
+    <div class="mb-3">
+      <label class="form-label small fw-semibold">Valori nutrizionali <span class="text-muted fw-normal">(per 100g)</span></label>
+      <div formGroupName="nutritionalValue">
+        <div class="row g-2">
+          <div class="col-6 col-sm-3">
+            <label class="form-label" style="font-size:.75rem;">Calorie (kcal)</label>
+            <input type="number" class="form-control form-control-sm" formControlName="calories" min="0" />
+          </div>
+          <div class="col-6 col-sm-3">
+            <label class="form-label" style="font-size:.75rem;">Proteine (g)</label>
+            <input type="number" class="form-control form-control-sm" formControlName="proteins" min="0" />
+          </div>
+          <div class="col-6 col-sm-3">
+            <label class="form-label" style="font-size:.75rem;">Carboidrati (g)</label>
+            <input type="number" class="form-control form-control-sm" formControlName="carbohydrates" min="0" />
+          </div>
+          <div class="col-6 col-sm-3">
+            <label class="form-label" style="font-size:.75rem;">Zuccheri (g)</label>
+            <input type="number" class="form-control form-control-sm" formControlName="sugars" min="0" />
+          </div>
+          <div class="col-6 col-sm-3">
+            <label class="form-label" style="font-size:.75rem;">Grassi (g)</label>
+            <input type="number" class="form-control form-control-sm" formControlName="fats" min="0" />
+          </div>
+          <div class="col-6 col-sm-3">
+            <label class="form-label" style="font-size:.75rem;">Saturi (g)</label>
+            <input type="number" class="form-control form-control-sm" formControlName="saturatedFats" min="0" />
+          </div>
+          <div class="col-6 col-sm-3">
+            <label class="form-label" style="font-size:.75rem;">Sale (g)</label>
+            <input type="number" class="form-control form-control-sm" formControlName="salt" min="0" />
+          </div>
+          <div class="col-6 col-sm-3">
+            <label class="form-label" style="font-size:.75rem;">Fibre (g)</label>
+            <input type="number" class="form-control form-control-sm" formControlName="fiber" min="0" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottoni -->
+    <div class="d-flex gap-2 justify-content-end pt-2 border-top mt-3">
+      <button type="button" class="btn btn-outline-secondary" (click)="cancelled.emit()">Annulla</button>
+      <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
+        <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+        <i *ngIf="!saving" class="bi bi-check-lg me-2"></i>
+        {{ product ? 'Salva modifiche' : 'Crea prodotto' }}
+      </button>
+    </div>
+  </form>
+</div>
