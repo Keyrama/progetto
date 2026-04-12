@@ -1,27 +1,66 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
   <div class="container">
     <a class="navbar-brand" routerLink="/">
-      <i class="bi bi-leaf-fill me-2"></i>Clean Label
+      <i class="bi bi-leaf-fill me-2 text-success"></i>Clean Label
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navMenu">
-      <ul class="navbar-nav ms-auto">
+
+    <div class="d-flex align-items-center gap-2 ms-auto">
+
+      <ul class="navbar-nav flex-row me-3">
         <li class="nav-item">
-          <a class="nav-link" routerLink="/products" routerLinkActive="fw-bold">
+          <a class="nav-link px-2" routerLink="/products" routerLinkActive="fw-bold">
             <i class="bi bi-grid me-1"></i>Prodotti
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/admin" routerLinkActive="fw-bold">
+        <li class="nav-item" *ngIf="auth.hasRole('CORPORATE')">
+          <a class="nav-link px-2" routerLink="/admin" routerLinkActive="fw-bold">
             <i class="bi bi-gear me-1"></i>Gestione
           </a>
         </li>
       </ul>
-      <span *ngIf="useMock" class="badge bg-warning text-dark ms-3">
-        <i class="bi bi-wifi-off me-1"></i>Modalità offline
-      </span>
+
+      <!-- Nessun ruolo selezionato: mostra i tre bottoni -->
+      <ng-container *ngIf="!auth.currentUser">
+        <span class="text-muted small me-1">Accedi come:</span>
+        <button *ngFor="let r of roles"
+                class="btn btn-sm btn-outline-secondary"
+                (click)="selectRole(r)">
+          {{ roleLabel(r) }}
+        </button>
+      </ng-container>
+
+      <!-- Ruolo selezionato: badge + dropdown Angular puro -->
+      <ng-container *ngIf="auth.currentUser as user">
+        <span class="badge" [ngClass]="roleBadgeClass(user.role)">
+          <i class="bi bi-person-fill me-1"></i>{{ roleLabel(user.role) }}
+        </span>
+
+        <div class="role-dropdown" style="position:relative;">
+          <button class="btn btn-sm btn-outline-secondary"
+                  (click)="toggleDropdown(); $event.stopPropagation()">
+            Cambia ruolo <i class="bi bi-chevron-down ms-1" style="font-size:.7rem;"></i>
+          </button>
+
+          <div *ngIf="dropdownOpen"
+               style="position:absolute;right:0;top:calc(100% + 4px);
+                      background:white;border:1px solid #ddd;border-radius:8px;
+                      min-width:160px;z-index:2000;box-shadow:0 4px 16px rgba(0,0,0,.12);">
+            <button *ngFor="let r of roles"
+                    class="d-block w-100 text-start btn btn-sm btn-light border-0 px-3 py-2"
+                    [class.fw-bold]="r === user.role"
+                    (click)="selectRole(r); $event.stopPropagation()">
+              {{ roleLabel(r) }}
+              <i *ngIf="r === user.role" class="bi bi-check ms-1 text-success"></i>
+            </button>
+            <hr class="my-1">
+            <button class="d-block w-100 text-start btn btn-sm btn-light border-0 px-3 py-2 text-danger"
+                    (click)="logout(); $event.stopPropagation()">
+              <i class="bi bi-box-arrow-right me-1"></i>Esci
+            </button>
+          </div>
+        </div>
+      </ng-container>
+
     </div>
   </div>
 </nav>

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { ProductSummary, ProductCategory } from '../../models/product.model';
+import { ProductDTO, ProductCategoryDTO } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-catalogue',
@@ -8,56 +10,75 @@ import { ProductService } from '../../services/product.service';
   styleUrls: ['./admin-catalogue.component.scss'],
 })
 export class AdminCatalogueComponent implements OnInit {
-  products: ProductSummary[] = [];
-  categories: ProductCategory[] = [];
+  products: ProductDTO[] = [];
+  categories: ProductCategoryDTO[] = [];
   loading = true;
   showForm = false;
-  selectedProduct: ProductSummary | null = null;
-  productToDelete: ProductSummary | null = null;
+  selectedProduct: ProductDTO | null = null;
+  productToDelete: ProductDTO | null = null;
   toastMsg = '';
+  toastError = false;
 
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    public auth: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
+    // Guard: redirect non-CORPORATE users
+    if (!this.auth.hasRole('CORPORATE')) {
+      this.router.navigate(['/products']);
+      return;
+    }
     this.load();
     this.productService.getCategories().subscribe(c => this.categories = c);
   }
 
   load() {
     this.loading = true;
-    this.productService.getProducts({ size: 100 }).subscribe(page => {
-      this.products = page.content;
+    this.productService.getProducts({}).subscribe(products => {
+      this.products = products;
       this.loading = false;
     });
   }
 
   openCreate() { this.selectedProduct = null; this.showForm = true; }
-  openEdit(p: ProductSummary) { this.selectedProduct = p; this.showForm = true; }
+  openEdit(p: ProductDTO) { this.selectedProduct = p; this.showForm = true; }
   closeForm() { this.showForm = false; this.selectedProduct = null; }
 
-  onSaved(product: any) {
+  onSaved() {
     this.closeForm();
     this.load();
-    this.showToast(this.selectedProduct ? 'Prodotto aggiornato!' : 'Prodotto creato!');
+    this.showToast('Prodotto salvato con successo.');
   }
 
-  confirmDelete(p: ProductSummary) { this.productToDelete = p; }
+  onSaveError() {
+    this.showToast('Errore durante il salvataggio. Verifica i dati.', true);
+  }
+
+  confirmDelete(p: ProductDTO) { this.productToDelete = p; }
 
   doDelete() {
-    if (!this.productToDelete) return;
-    this.productService.deleteProduct(this.productToDelete.id).subscribe(() => {
-      this.productToDelete = null;
-      this.load();
-      this.showToast('Prodotto eliminato.');
+    if (!this.productToDelete?.id) return;
+    this.productService.deleteProduct(this.productToDelete.id).subscribe({
+      next: () => {
+        this.productToDelete = null;
+        this.load();
+        this.showToast('Prodotto eliminato.');
+      },
+      error: () => this.showToast('Errore durante l\'eliminazione.', true)
     });
   }
 
-  showToast(msg: string) {
+  showToast(msg: string, error = false) {
     this.toastMsg = msg;
-    setTimeout(() => this.toastMsg = '', 3000);
+    this.toastError = error;
+    setTimeout(() => this.toastMsg = '', 3500);
   }
 
-  scoreClass(score: number): string {
+  scoreClass(score: number | undefined): string {
+    if (score == null) return 'text-muted';
     if (score >= 70) return 'score-high';
     if (score >= 40) return 'score-medium';
     return 'score-low';

@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { AlternativeSuggestionDTO } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 
 @Component({
@@ -9,7 +10,7 @@ import { ProductService } from '../../services/product.service';
 export class ProductAlternativesComponent implements OnInit {
   @Input() productId!: number;
 
-  alternatives: any[] = [];
+  alternatives: AlternativeSuggestionDTO[] = [];
   loading = true;
 
   constructor(private productService: ProductService, private router: Router) {}

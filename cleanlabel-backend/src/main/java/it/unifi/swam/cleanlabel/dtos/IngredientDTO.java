@@ -1,31 +1,30 @@
 package it.unifi.swam.cleanlabel.dtos;
 
+import it.unifi.swam.cleanlabel.model.Ingredient;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+
+import java.util.List;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class IngredientDTO {
 
     private Long id;
+
+    @NotBlank @Size(max = 200)
     private String name;
+
+    @Size(max = 10)
     private String eNumber;
+
+    @Size(max = 1000)
     private String description;
-    private boolean isArtificial;
-    private String riskLevel;
 
-    public IngredientDTO() {}
+    private boolean artificial;
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    private Ingredient.RiskLevel riskLevel;
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getENumber() { return eNumber; }
-    public void setENumber(String eNumber) { this.eNumber = eNumber; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public boolean isArtificial() { return isArtificial; }
-    public void setArtificial(boolean artificial) { isArtificial = artificial; }
-
-    public String getRiskLevel() { return riskLevel; }
-    public void setRiskLevel(String riskLevel) { this.riskLevel = riskLevel; }
+    /** Allergens contained in this ingredient (derived, not input by user) */
+    private List<AllergenDTO> allergens;
 }

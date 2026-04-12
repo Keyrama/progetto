@@ -34,7 +34,7 @@
                 placeholder="Breve descrizione del prodotto"></textarea>
     </div>
 
-    <!-- Categoria + Clean Label -->
+    <!-- Categoria + Sustainability -->
     <div class="row g-3 mb-3">
       <div class="col-sm-7">
         <label class="form-label small fw-semibold">Categoria</label>
@@ -43,60 +43,85 @@
           <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
         </select>
       </div>
-      <div class="col-sm-5 d-flex align-items-end pb-1">
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="cleanLabel" formControlName="isCleanLabel" />
-          <label class="form-check-label" for="cleanLabel">
-            <i class="bi bi-leaf text-success me-1"></i>Clean Label
-          </label>
-        </div>
+      <div class="col-sm-5">
+        <label class="form-label small fw-semibold">Score sostenibilità</label>
+        <input type="number" class="form-control" formControlName="sustainabilityScore"
+               min="0" max="100" placeholder="0–100" />
       </div>
     </div>
 
     <!-- Valori nutrizionali -->
     <div class="mb-3">
-      <label class="form-label small fw-semibold">Valori nutrizionali <span class="text-muted fw-normal">(per 100g)</span></label>
+      <label class="form-label small fw-semibold">
+        Valori nutrizionali <span class="text-muted fw-normal">(per 100g)</span>
+      </label>
       <div formGroupName="nutritionalValue">
         <div class="row g-2">
-          <div class="col-6 col-sm-3">
-            <label class="form-label" style="font-size:.75rem;">Calorie (kcal)</label>
-            <input type="number" class="form-control form-control-sm" formControlName="calories" min="0" />
-          </div>
-          <div class="col-6 col-sm-3">
-            <label class="form-label" style="font-size:.75rem;">Proteine (g)</label>
-            <input type="number" class="form-control form-control-sm" formControlName="proteins" min="0" />
-          </div>
-          <div class="col-6 col-sm-3">
-            <label class="form-label" style="font-size:.75rem;">Carboidrati (g)</label>
-            <input type="number" class="form-control form-control-sm" formControlName="carbohydrates" min="0" />
-          </div>
-          <div class="col-6 col-sm-3">
-            <label class="form-label" style="font-size:.75rem;">Zuccheri (g)</label>
-            <input type="number" class="form-control form-control-sm" formControlName="sugars" min="0" />
-          </div>
-          <div class="col-6 col-sm-3">
-            <label class="form-label" style="font-size:.75rem;">Grassi (g)</label>
-            <input type="number" class="form-control form-control-sm" formControlName="fats" min="0" />
-          </div>
-          <div class="col-6 col-sm-3">
-            <label class="form-label" style="font-size:.75rem;">Saturi (g)</label>
-            <input type="number" class="form-control form-control-sm" formControlName="saturatedFats" min="0" />
-          </div>
-          <div class="col-6 col-sm-3">
-            <label class="form-label" style="font-size:.75rem;">Sale (g)</label>
-            <input type="number" class="form-control form-control-sm" formControlName="salt" min="0" />
-          </div>
-          <div class="col-6 col-sm-3">
-            <label class="form-label" style="font-size:.75rem;">Fibre (g)</label>
-            <input type="number" class="form-control form-control-sm" formControlName="fiber" min="0" />
+          <div class="col-6 col-sm-3" *ngFor="let field of [
+            {key:'calories',label:'Calorie (kcal)'},
+            {key:'proteins',label:'Proteine (g)'},
+            {key:'carbohydrates',label:'Carboidrati (g)'},
+            {key:'sugars',label:'Zuccheri (g)'},
+            {key:'fats',label:'Grassi (g)'},
+            {key:'saturatedFats',label:'Saturi (g)'},
+            {key:'salt',label:'Sale (g)'},
+            {key:'fiber',label:'Fibre (g)'}]">
+            <label class="form-label" style="font-size:.75rem;">{{ field.label }}</label>
+            <input type="number" class="form-control form-control-sm"
+                   [formControlName]="field.key" min="0" step="0.1" />
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Ingredienti -->
+    <div class="mb-3" *ngIf="availableIngredients.length > 0">
+      <label class="form-label small fw-semibold">
+        Ingredienti
+        <span class="badge bg-secondary ms-1">{{ selectedIngredientIds.size }} selezionati</span>
+      </label>
+      <div class="border rounded p-2" style="max-height:180px;overflow-y:auto;">
+        <div *ngFor="let ing of availableIngredients" class="form-check">
+          <input class="form-check-input" type="checkbox"
+                 [id]="'ing-' + ing.id"
+                 [checked]="isIngredientSelected(ing.id!)"
+                 (change)="toggleIngredient(ing.id!)" />
+          <label class="form-check-label small d-flex align-items-center gap-2"
+                 [for]="'ing-' + ing.id">
+            {{ ing.name }}
+            <span *ngIf="ing.eNumber" class="text-muted">({{ ing.eNumber }})</span>
+            <i class="bi bi-circle-fill" style="font-size:.5rem;"
+               [ngClass]="riskClass(ing.riskLevel)"></i>
+            <span *ngIf="ing.artificial" class="badge bg-secondary" style="font-size:.65rem;">
+              artificiale
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- "Può contenere tracce di" (allergens) -->
+    <div class="mb-4" *ngIf="availableAllergens.length > 0">
+      <label class="form-label small fw-semibold">
+        Può contenere tracce di
+        <span class="badge bg-secondary ms-1">{{ selectedAllergenIds.size }} selezionati</span>
+      </label>
+      <div class="border rounded p-2" style="max-height:140px;overflow-y:auto;">
+        <div *ngFor="let a of availableAllergens" class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox"
+                 [id]="'alg-' + a.id"
+                 [checked]="isAllergenSelected(a.id)"
+                 (change)="toggleAllergen(a.id)" />
+          <label class="form-check-label small" [for]="'alg-' + a.id">{{ a.name }}</label>
+        </div>
+      </div>
+    </div>
+
     <!-- Bottoni -->
-    <div class="d-flex gap-2 justify-content-end pt-2 border-top mt-3">
-      <button type="button" class="btn btn-outline-secondary" (click)="cancelled.emit()">Annulla</button>
+    <div class="d-flex gap-2 justify-content-end pt-2 border-top">
+      <button type="button" class="btn btn-outline-secondary" (click)="cancelled.emit()">
+        Annulla
+      </button>
       <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
         <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
         <i *ngIf="!saving" class="bi bi-check-lg me-2"></i>

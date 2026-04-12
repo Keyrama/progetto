@@ -1,10 +1,40 @@
-export interface ProductCategory {
+// ── Enums ─────────────────────────────────────────────────────────────────────
+
+export type UserRole = 'CONSUMER' | 'SPECIALIST' | 'CORPORATE';
+export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+export type ClaimType = 'NUTRITIONAL' | 'HEALTH' | 'MARKETING';
+export type ValidationStrategy =
+  | 'NONE' | 'NO_ARTIFICIAL_INGREDIENTS' | 'SUGAR_BELOW_THRESHOLD'
+  | 'FAT_REDUCED' | 'HIGH_FIBER' | 'NO_HIGH_RISK_INGREDIENTS';
+export type MisleadingReason =
+  | 'NO_LEGAL_DEFINITION' | 'VAGUE_CRITERIA' | 'REGULATORY_BREACH' | 'NONE';
+export type AnalysisStatus = 'MATCHED' | 'UNMATCHED';
+export type Verdict = 'CONFIRMED' | 'CONTRADICTED' | 'UNVERIFIABLE' | 'INCOMPLETE_DATA';
+
+// ── Core entities ─────────────────────────────────────────────────────────────
+
+export interface UserDTO {
+  id?: number;
+  username: string;
+  email: string;
+  role: UserRole;
+}
+
+export interface AllergenDTO {
+  id: number;
+  name: string;
+  code: string;
+  description?: string;
+}
+
+export interface ProductCategoryDTO {
   id: number;
   name: string;
   description?: string;
 }
 
-export interface NutritionalValue {
+export interface NutritionalValueDTO {
+  id?: number;
   calories: number;
   proteins: number;
   carbohydrates: number;
@@ -15,76 +45,89 @@ export interface NutritionalValue {
   fiber?: number;
 }
 
-export interface Allergen {
-  id: number;
-  name: string;
-  code: string;
-}
-
-export interface Ingredient {
-  id: number;
+export interface IngredientDTO {
+  id?: number;
   name: string;
   eNumber?: string;
-  isArtificial: boolean;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  description?: string;
+  artificial: boolean;
+  riskLevel: RiskLevel;
+  allergens?: AllergenDTO[];
 }
 
-export interface NutritionalClaim {
-  id: number;
-  label: string;
-  isValidated: boolean;
-  isMisleading: boolean;
-  explanation?: string;
+// ── Claim library ─────────────────────────────────────────────────────────────
+
+export interface ClaimDefinitionDTO {
+  id?: number;
+  term: string;
+  claimType: ClaimType;
+  regulated: boolean;
+  misleading: boolean;
+  misleadingReason: MisleadingReason;
+  explanation: string;
+  regulatoryReference?: string;
+  validationStrategy: ValidationStrategy;
+  validationThreshold?: number;
 }
 
-export interface ProductSummary {
+export interface ValidationResultDTO {
+  verdict: Verdict;
+  validationDetail: string;
+}
+
+export interface ProductClaimDTO {
   id: number;
+  rawLabel: string;
+  status: AnalysisStatus;
+  claimDefinition?: ClaimDefinitionDTO;
+  validationResult: ValidationResultDTO;
+  analyzedAt: string;
+}
+
+// ── Product ───────────────────────────────────────────────────────────────────
+
+export interface ProductDTO {
+  id?: number;
   name: string;
   brand: string;
   description?: string;
+  categoryId?: number;
+  categoryName?: string;
+  nutritionalValue?: NutritionalValueDTO;
+  ingredientIds?: number[];
+  ingredients?: IngredientDTO[];
+  mayContainAllergenIds?: number[];
+  mayContainAllergens?: AllergenDTO[];
+  sustainabilityScore?: number;
+  // output-only
+  healthScore?: number;
+  cleanLabel?: boolean;
+  declaredAllergens?: AllergenDTO[];
+  claims?: ProductClaimDTO[];
+}
+
+// ── Alternatives ──────────────────────────────────────────────────────────────
+
+export interface AlternativeSuggestionDTO {
+  productId: number;
+  productName: string;
+  brand: string;
   healthScore: number;
-  sustainabilityScore: number;
-  isCleanLabel: boolean;
-  category?: ProductCategory;
+  cleanLabel: boolean;
+  scoreDelta: number;
+  reason: string;
 }
 
-export interface ProductDetail extends ProductSummary {
-  nutritionalValue?: NutritionalValue;
-  allergens: Allergen[];
-  ingredients: Ingredient[];
-  claims: NutritionalClaim[];
-}
-
-export interface PagedResponse<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  number: number;
-  size: number;
-}
+// ── Filter (client-side) ──────────────────────────────────────────────────────
 
 export interface ProductFilter {
   search?: string;
-  categoryId?: number;
-  cleanLabelOnly?: boolean;
-  minScore?: number;
-  page?: number;
-  size?: number;
+  category?: number;
+  cleanLabel?: boolean;
 }
 
-export interface HealthScoreDTO {
-  totalScore: number;
-  nutritionScore: number;
-  ingredientScore: number;
-  claimScore: number;
-  flaggedIngredients: string[];
-  misleadingClaims: string[];
-  summary: string;
-}
+// ── Claim analysis request ────────────────────────────────────────────────────
 
-export interface AlternativeSuggestion {
-  id: number;
-  targetProduct: ProductSummary;
-  reason: string;
-  scoreDelta: number;
+export interface ClaimAnalysisRequestDTO {
+  rawClaims: string[];
 }

@@ -1,5 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { ProductCategory, ProductFilter } from '../../models/product.model';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ProductCategoryDTO, ProductFilter } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 
 @Component({
@@ -7,30 +7,35 @@ import { ProductService } from '../../services/product.service';
   templateUrl: './product-filter.component.html',
 })
 export class ProductFilterComponent implements OnInit {
-  @Input()  filter: ProductFilter = {};
+  @Input() filter: ProductFilter = {};
   @Output() filterChange = new EventEmitter<ProductFilter>();
+  @Output() reset = new EventEmitter<void>();
 
-  categories: ProductCategory[] = [];
+  categories: ProductCategoryDTO[] = [];
 
   constructor(private productService: ProductService) {}
 
   ngOnInit() {
-    this.productService.getCategories().subscribe(cats => this.categories = cats);
+    this.productService.getCategories().subscribe(c => this.categories = c);
   }
 
-  onSearchChange(val: string) {
-    this.filterChange.emit({ ...this.filter, search: val || undefined, page: 0 });
+  onSearchChange(value: string) {
+    this.filter = { ...this.filter, search: value || undefined };
+    this.filterChange.emit(this.filter);
   }
+
   onCategoryChange(id: number | undefined) {
-    this.filterChange.emit({ ...this.filter, categoryId: id, page: 0 });
+    this.filter = { ...this.filter, category: id };
+    this.filterChange.emit(this.filter);
   }
-  onCleanLabelChange(val: boolean) {
-    this.filterChange.emit({ ...this.filter, cleanLabelOnly: val || undefined, page: 0 });
+
+  onCleanLabelChange(value: boolean) {
+    this.filter = { ...this.filter, cleanLabel: value || undefined };
+    this.filterChange.emit(this.filter);
   }
-  onMinScoreChange(val: number) {
-    this.filterChange.emit({ ...this.filter, minScore: val || undefined, page: 0 });
-  }
+
   onReset() {
-    this.filterChange.emit({ page: 0, size: 12 });
+    this.filter = {};
+    this.reset.emit();
   }
 }

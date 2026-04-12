@@ -1,43 +1,35 @@
 package it.unifi.swam.cleanlabel.dtos;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.*;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class NutritionalValueDTO {
 
     private Long id;
+
+    @NotNull @PositiveOrZero
     private Double calories;
+
+    @NotNull @PositiveOrZero
     private Double proteins;
+
+    @NotNull @PositiveOrZero
     private Double carbohydrates;
+
+    @NotNull @PositiveOrZero
     private Double sugars;
+
+    @NotNull @PositiveOrZero
     private Double fats;
+
+    @NotNull @PositiveOrZero
     private Double saturatedFats;
+
+    @NotNull @PositiveOrZero
     private Double salt;
+
+    @PositiveOrZero
     private Double fiber;
-
-    public NutritionalValueDTO() {}
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Double getCalories() { return calories; }
-    public void setCalories(Double calories) { this.calories = calories; }
-
-    public Double getProteins() { return proteins; }
-    public void setProteins(Double proteins) { this.proteins = proteins; }
-
-    public Double getCarbohydrates() { return carbohydrates; }
-    public void setCarbohydrates(Double carbohydrates) { this.carbohydrates = carbohydrates; }
-
-    public Double getSugars() { return sugars; }
-    public void setSugars(Double sugars) { this.sugars = sugars; }
-
-    public Double getFats() { return fats; }
-    public void setFats(Double fats) { this.fats = fats; }
-
-    public Double getSaturatedFats() { return saturatedFats; }
-    public void setSaturatedFats(Double saturatedFats) { this.saturatedFats = saturatedFats; }
-
-    public Double getSalt() { return salt; }
-    public void setSalt(Double salt) { this.salt = salt; }
-
-    public Double getFiber() { return fiber; }
-    public void setFiber(Double fiber) { this.fiber = fiber; }
 }

@@ -2,27 +2,17 @@ package it.unifi.swam.cleanlabel.mappers;
 
 import it.unifi.swam.cleanlabel.dtos.AllergenDTO;
 import it.unifi.swam.cleanlabel.model.Allergen;
+import org.mapstruct.*;
 
-public class AllergenMapper {
+import java.util.List;
 
-    public static AllergenDTO toDTO(Allergen allergen) {
-        if (allergen == null) return null;
+@Mapper(componentModel = "spring")
+public interface AllergenMapper {
 
-        AllergenDTO dto = new AllergenDTO();
-        dto.setId(allergen.getId());
-        dto.setName(allergen.getName());
-        dto.setCode(allergen.getCode());
-        dto.setDescription(allergen.getDescription());
-        return dto;
-    }
+    AllergenDTO toDTO(Allergen allergen);
 
-    public static Allergen toEntity(AllergenDTO dto) {
-        if (dto == null) return null;
+    List<AllergenDTO> toDTOList(List<Allergen> allergens);
 
-        Allergen allergen = new Allergen();
-        allergen.setName(dto.getName());
-        allergen.setCode(dto.getCode());
-        allergen.setDescription(dto.getDescription());
-        return allergen;
-    }
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    Allergen toEntity(AllergenDTO dto);
 }

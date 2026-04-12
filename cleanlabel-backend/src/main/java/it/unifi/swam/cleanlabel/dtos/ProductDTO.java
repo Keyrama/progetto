@@ -1,75 +1,81 @@
 package it.unifi.swam.cleanlabel.dtos;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+
 import java.util.List;
 
 /**
- * Data Transfer Object for Product.
- * Used for both list views (summary) and detail views.
+ * Unified DTO for Product.
+ *
+ * Why split here despite the general rule?
+ *
+ * Input (POST/PUT): name, brand, description, categoryId, nutritionalValue,
+ *   ingredientIds, mayContainAllergenIds, sustainabilityScore.
+ *   Fields like healthScore, cleanLabel, declaredAllergens are COMPUTED by the system.
+ *
+ * Output (GET): all of the above plus the computed fields.
+ *
+ * We keep a single class and let the service simply ignore computed fields on write.
+ * On read, the mapper populates everything. This avoids duplication for a prototype.
  */
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ProductDTO {
 
+    // ── Common fields (both input and output) ─────────────────────────────────
+
     private Long id;
+
+    @NotBlank @Size(max = 200)
     private String name;
+
+    @NotBlank @Size(max = 200)
     private String brand;
+
+    @Size(max = 1000)
     private String description;
-    private String imageUrl;
-    private Integer healthScore;
-    private Integer sustainabilityScore;
-    private boolean isCleanLabel;
+
+    /** ID of the ProductCategory. Required on input; included in output. */
+    private Long categoryId;
+
+    /** Category name — populated on output only */
     private String categoryName;
 
-    // Included in detail view only
+    @Valid
     private NutritionalValueDTO nutritionalValue;
+
+    /**
+     * Input: list of existing Ingredient IDs to associate.
+     * Output: full ingredient details.
+     * We use separate fields to avoid overloading one field with two types.
+     */
+    private List<Long> ingredientIds;
     private List<IngredientDTO> ingredients;
-    private List<AllergenDTO> allergens;
-    private List<NutritionalClaimDTO> claims;
 
-    // ── Constructors ──────────────────────────────────────────────────────────
+    /** Input: allergen IDs for "may contain traces of" */
+    private List<Long> mayContainAllergenIds;
 
-    public ProductDTO() {}
+    /** Output: full allergen details for "may contain traces of" */
+    private List<AllergenDTO> mayContainAllergens;
 
-    // ── Getters & Setters ─────────────────────────────────────────────────────
+    private Integer sustainabilityScore;
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    // ── Output-only (computed by the system) ─────────────────────────────────
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    /** Computed by HealthScoreService from nutritional values and ingredient risk */
+    private Integer healthScore;
 
-    public String getBrand() { return brand; }
-    public void setBrand(String brand) { this.brand = brand; }
+    /** True if no artificial ingredients and no HIGH-risk additives */
+    private boolean cleanLabel;
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    /**
+     * Allergens derived from the ingredient list (not "may contain").
+     * Computed at read time from ingredient.allergens — not stored separately.
+     */
+    private List<AllergenDTO> declaredAllergens;
 
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-
-    public Integer getHealthScore() { return healthScore; }
-    public void setHealthScore(Integer healthScore) { this.healthScore = healthScore; }
-
-    public Integer getSustainabilityScore() { return sustainabilityScore; }
-    public void setSustainabilityScore(Integer sustainabilityScore) {
-        this.sustainabilityScore = sustainabilityScore;
-    }
-
-    public boolean isCleanLabel() { return isCleanLabel; }
-    public void setCleanLabel(boolean cleanLabel) { isCleanLabel = cleanLabel; }
-
-    public String getCategoryName() { return categoryName; }
-    public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
-
-    public NutritionalValueDTO getNutritionalValue() { return nutritionalValue; }
-    public void setNutritionalValue(NutritionalValueDTO nutritionalValue) {
-        this.nutritionalValue = nutritionalValue;
-    }
-
-    public List<IngredientDTO> getIngredients() { return ingredients; }
-    public void setIngredients(List<IngredientDTO> ingredients) { this.ingredients = ingredients; }
-
-    public List<AllergenDTO> getAllergens() { return allergens; }
-    public void setAllergens(List<AllergenDTO> allergens) { this.allergens = allergens; }
-
-    public List<NutritionalClaimDTO> getClaims() { return claims; }
-    public void setClaims(List<NutritionalClaimDTO> claims) { this.claims = claims; }
+    /** Claims found on the label with analysis results */
+    private List<ProductClaimDTO> claims;
 }

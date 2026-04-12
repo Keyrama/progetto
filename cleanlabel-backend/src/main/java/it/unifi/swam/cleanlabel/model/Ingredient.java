@@ -1,13 +1,21 @@
 package it.unifi.swam.cleanlabel.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Represents a single ingredient or food additive.
- * E-numbers refer to the European food additive numbering system.
+ * Allergens are declared at ingredient level (e.g. "wheat flour" contains GLUTEN),
+ * which allows the system to derive product allergens automatically.
  */
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "ingredients")
 public class Ingredient {
@@ -21,7 +29,10 @@ public class Ingredient {
     @Column(nullable = false, length = 200)
     private String name;
 
-    /** E-number if this is a food additive (e.g., "E621" for MSG). Null for natural ingredients. */
+    /**
+     * E-number if this is a food additive (e.g. "E621" for MSG).
+     * Null for natural ingredients.
+     */
     @Column(name = "e_number", length = 10)
     private String eNumber;
 
@@ -30,43 +41,21 @@ public class Ingredient {
     private String description;
 
     @Column(name = "is_artificial", nullable = false)
-    private boolean isArtificial = false;
+    private boolean artificial = false;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "risk_level", nullable = false)
     private RiskLevel riskLevel = RiskLevel.LOW;
 
-    // ── Constructors ──────────────────────────────────────────────────────────
-
-    public Ingredient() {}
-
-    public Ingredient(String name, String eNumber, String description,
-                      boolean isArtificial, RiskLevel riskLevel) {
-        this.name = name;
-        this.eNumber = eNumber;
-        this.description = description;
-        this.isArtificial = isArtificial;
-        this.riskLevel = riskLevel;
-    }
-
-    // ── Getters & Setters ─────────────────────────────────────────────────────
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getENumber() { return eNumber; }
-    public void setENumber(String eNumber) { this.eNumber = eNumber; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public boolean isArtificial() { return isArtificial; }
-    public void setArtificial(boolean artificial) { isArtificial = artificial; }
-
-    public RiskLevel getRiskLevel() { return riskLevel; }
-    public void setRiskLevel(RiskLevel riskLevel) { this.riskLevel = riskLevel; }
-
+    /**
+     * Allergens contained in this ingredient.
+     * E.g. "wheat flour" → [GLUTEN].
+     */
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "ingredient_allergens",
+            joinColumns = @JoinColumn(name = "ingredient_id"),
+            inverseJoinColumns = @JoinColumn(name = "allergen_id")
+    )
+    private List<Allergen> allergens = new ArrayList<>();
 }

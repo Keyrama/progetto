@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
-import { ProductSummary, ProductFilter } from '../../models/product.model';
+import { ProductDTO, ProductFilter } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 
 @Component({
@@ -10,13 +10,19 @@ import { ProductService } from '../../services/product.service';
   templateUrl: './product-list.component.html',
 })
 export class ProductListComponent implements OnInit, OnDestroy {
-  products: ProductSummary[] = [];
-  filter: ProductFilter = { page: 0, size: 12 };
+  // All products returned by the backend
+  allProducts: ProductDTO[] = [];
+  // Slice shown in the current page
+  products: ProductDTO[] = [];
+
+  filter: ProductFilter = {};
   loading = false;
-  totalElements = 0;
-  totalPages = 0;
+
+  // Client-side pagination (backend returns a flat list)
   currentPage = 0;
   pageSize = 12;
+  totalElements = 0;
+  totalPages = 0;
 
   private filter$ = new Subject<ProductFilter>();
   private destroy$ = new Subject<void>();
@@ -29,11 +35,12 @@ export class ProductListComponent implements OnInit, OnDestroy {
       distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
       switchMap(f => { this.loading = true; return this.productService.getProducts(f); }),
       takeUntil(this.destroy$)
-    ).subscribe(page => {
-      this.products = page.content;
-      this.totalElements = page.totalElements;
-      this.totalPages = page.totalPages;
-      this.currentPage = page.number;
+    ).subscribe(products => {
+      this.allProducts = products;
+      this.totalElements = products.length;
+      this.totalPages = Math.ceil(products.length / this.pageSize);
+      this.currentPage = 0;
+      this.applyPage();
       this.loading = false;
     });
 
@@ -43,28 +50,38 @@ export class ProductListComponent implements OnInit, OnDestroy {
   ngOnDestroy() { this.destroy$.next(); this.destroy$.complete(); }
 
   onFilterChange(f: ProductFilter) {
-    this.filter = { ...f, size: this.pageSize };
+    this.filter = { ...f };
     this.filter$.next(this.filter);
   }
 
-  onPageSizeChange() {
-    this.filter = { ...this.filter, size: this.pageSize, page: 0 };
+  onResetFilter() {
+    this.filter = {};
     this.filter$.next(this.filter);
   }
 
   goToPage(p: number) {
     if (p < 0 || p >= this.totalPages) return;
-    this.filter = { ...this.filter, page: p };
-    this.filter$.next(this.filter);
+    this.currentPage = p;
+    this.applyPage();
   }
 
   onProductSelected(id: number) { this.router.navigate(['/products', id]); }
-
-  onResetFilter() { this.filter = { page: 0, size: this.pageSize }; this.filter$.next(this.filter); }
 
   get pageRange(): number[] {
     const start = Math.max(0, this.currentPage - 2);
     const end = Math.min(this.totalPages - 1, start + 4);
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }
+
+  scoreClass(score: number | undefined): string {
+    if (score == null) return 'score-unknown';
+    if (score >= 70) return 'score-high';
+    if (score >= 40) return 'score-medium';
+    return 'score-low';
+  }
+
+  private applyPage() {
+    const start = this.currentPage * this.pageSize;
+    this.products = this.allProducts.slice(start, start + this.pageSize);
   }
 }

@@ -1,26 +1,21 @@
 package it.unifi.swam.cleanlabel.dtos;
 
+import lombok.*;
+
 /**
- * DTO returned by GET /api/products/{id}/alternatives
+ * Pure output DTO — no backing entity.
+ * Produced at runtime by AlternativeSuggestionService
+ * by comparing products in the same category.
  */
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class AlternativeSuggestionDTO {
-
-    private Long id;
-    private ProductDTO targetProduct;
-    private String reason;
+    private Long productId;
+    private String productName;
+    private String brand;
+    private Integer healthScore;
+    private boolean cleanLabel;
+    /** Positive value: how many points better than the source product */
     private Integer scoreDelta;
-
-    public AlternativeSuggestionDTO() {}
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public ProductDTO getTargetProduct() { return targetProduct; }
-    public void setTargetProduct(ProductDTO targetProduct) { this.targetProduct = targetProduct; }
-
-    public String getReason() { return reason; }
-    public void setReason(String reason) { this.reason = reason; }
-
-    public Integer getScoreDelta() { return scoreDelta; }
-    public void setScoreDelta(Integer scoreDelta) { this.scoreDelta = scoreDelta; }
+    /** Human-readable reason why this product is a better choice */
+    private String reason;
 }

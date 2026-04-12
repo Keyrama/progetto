@@ -1,12 +1,16 @@
 package it.unifi.swam.cleanlabel.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents a healthier alternative product suggestion.
  * Links a source product (lower score) to a target product (higher score)
  * within the same category, with a human-readable reason.
  */
+@Setter
+@Getter
 @Entity
 @Table(name = "alternative_suggestions")
 public class AlternativeSuggestion {
@@ -34,32 +38,4 @@ public class AlternativeSuggestion {
     @Column(name = "score_delta")
     private Integer scoreDelta;
 
-    // ── Constructors ──────────────────────────────────────────────────────────
-
-    public AlternativeSuggestion() {}
-
-    public AlternativeSuggestion(Product sourceProduct, Product targetProduct,
-                                  String reason, Integer scoreDelta) {
-        this.sourceProduct = sourceProduct;
-        this.targetProduct = targetProduct;
-        this.reason = reason;
-        this.scoreDelta = scoreDelta;
-    }
-
-    // ── Getters & Setters ─────────────────────────────────────────────────────
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Product getSourceProduct() { return sourceProduct; }
-    public void setSourceProduct(Product sourceProduct) { this.sourceProduct = sourceProduct; }
-
-    public Product getTargetProduct() { return targetProduct; }
-    public void setTargetProduct(Product targetProduct) { this.targetProduct = targetProduct; }
-
-    public String getReason() { return reason; }
-    public void setReason(String reason) { this.reason = reason; }
-
-    public Integer getScoreDelta() { return scoreDelta; }
-    public void setScoreDelta(Integer scoreDelta) { this.scoreDelta = scoreDelta; }
 }

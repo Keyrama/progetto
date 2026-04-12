@@ -1,18 +1,15 @@
-version: '3.8'
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: cleanlabel_mysql
-    restart: unless-stopped
+  postgres:
+    image: postgres:16
+    container_name: cleanlabel-db
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: cleanlabel_db
-      MYSQL_USER: cleanlabel_user
-      MYSQL_PASSWORD: cleanlabel_pass
+      POSTGRES_DB: cleanlabel
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
-      - "3306:3306"
+      - "5432:5432"       # host:container — espone il DB sulla tua macchina
     volumes:
-      - mysql_data:/var/lib/mysql
+      - cleanlabel_data:/var/lib/postgresql/data   # i dati sopravvivono al restart
 
 volumes:
-  mysql_data:
+  cleanlabel_data:

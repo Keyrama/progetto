@@ -3,8 +3,12 @@
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h4 class="fw-bold mb-1"><i class="bi bi-grid-3x3-gap me-2 text-success"></i>Gestione Catalogo</h4>
-      <small class="text-muted">Ruolo: <span class="badge bg-dark">CORPORATE</span></small>
+      <h4 class="fw-bold mb-1">
+        <i class="bi bi-grid-3x3-gap me-2 text-success"></i>Gestione Catalogo
+      </h4>
+      <small class="text-muted">
+        Ruolo attivo: <span class="badge bg-danger">CORPORATE</span>
+      </small>
     </div>
     <button class="btn btn-primary" (click)="openCreate()">
       <i class="bi bi-plus-lg me-2"></i>Nuovo prodotto
@@ -21,47 +25,49 @@
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
-          <tr>
-            <th>Prodotto</th>
-            <th>Brand</th>
-            <th>Categoria</th>
-            <th class="text-center">Score</th>
-            <th class="text-center">Clean</th>
-            <th class="text-end">Azioni</th>
-          </tr>
+        <tr>
+          <th>Prodotto</th>
+          <th>Brand</th>
+          <th>Categoria</th>
+          <th class="text-center">Score</th>
+          <th class="text-center">Clean</th>
+          <th class="text-end">Azioni</th>
+        </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let p of products">
-            <td>
-              <span class="fw-semibold">{{ p.name }}</span>
-            </td>
-            <td class="text-muted small">{{ p.brand }}</td>
-            <td>
-              <span *ngIf="p.category" class="badge bg-light text-secondary border">
-                {{ p.category.name }}
+        <tr *ngFor="let p of products">
+          <td><span class="fw-semibold">{{ p.name }}</span></td>
+          <td class="text-muted small">{{ p.brand }}</td>
+          <td>
+            <!-- categoryName is the flat string from the summary DTO -->
+            <span *ngIf="p.categoryName" class="badge bg-light text-secondary border">
+                {{ p.categoryName }}
               </span>
-            </td>
-            <td class="text-center">
-              <span [class]="'score-badge d-inline-flex ' + scoreClass(p.healthScore)"
+          </td>
+          <td class="text-center">
+              <span [ngClass]="'score-badge d-inline-flex ' + scoreClass(p.healthScore)"
                     style="width:36px;height:36px;font-size:.8rem;">
-                {{ p.healthScore }}
+                {{ p.healthScore ?? '?' }}
               </span>
-            </td>
-            <td class="text-center">
-              <i *ngIf="p.isCleanLabel"  class="bi bi-check-circle-fill text-success fs-5"></i>
-              <i *ngIf="!p.isCleanLabel" class="bi bi-x-circle text-muted fs-5"></i>
-            </td>
-            <td class="text-end">
-              <button class="btn btn-sm btn-outline-secondary me-1"
-                      (click)="openEdit(p)" title="Modifica">
-                <i class="bi bi-pencil"></i>
-              </button>
-              <button class="btn btn-sm btn-outline-danger"
-                      (click)="confirmDelete(p)" title="Elimina">
-                <i class="bi bi-trash"></i>
-              </button>
-            </td>
-          </tr>
+          </td>
+          <td class="text-center">
+            <i *ngIf="p.cleanLabel"  class="bi bi-check-circle-fill text-success fs-5"></i>
+            <i *ngIf="!p.cleanLabel" class="bi bi-x-circle text-muted fs-5"></i>
+          </td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-secondary me-1"
+                    (click)="openEdit(p)" title="Modifica">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger"
+                    (click)="confirmDelete(p)" title="Elimina">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="products.length === 0">
+          <td colspan="6" class="text-center text-muted py-4">Nessun prodotto nel catalogo.</td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -73,17 +79,23 @@
     <app-product-form
       [product]="selectedProduct"
       [categories]="categories"
-      (saved)="onSaved($event)"
+      (saved)="onSaved()"
+      (saveError)="onSaveError()"
       (cancelled)="closeForm()">
     </app-product-form>
   </div>
 
-  <!-- Toast conferma -->
+  <!-- Toast -->
   <div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div *ngIf="toastMsg" class="toast show align-items-center text-bg-success border-0">
+    <div *ngIf="toastMsg" class="toast show align-items-center border-0"
+         [ngClass]="toastError ? 'text-bg-danger' : 'text-bg-success'">
       <div class="d-flex">
-        <div class="toast-body"><i class="bi bi-check-circle me-2"></i>{{ toastMsg }}</div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="toastMsg=''"></button>
+        <div class="toast-body">
+          <i class="bi me-2" [ngClass]="toastError ? 'bi-x-circle' : 'bi-check-circle'"></i>
+          {{ toastMsg }}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                (click)="toastMsg=''"></button>
       </div>
     </div>
   </div>
@@ -91,9 +103,12 @@
   <!-- Modale conferma elimina -->
   <div class="modal-backdrop-custom" *ngIf="productToDelete" (click)="productToDelete=null"></div>
   <div *ngIf="productToDelete" class="delete-confirm-modal card border-0 shadow-lg rounded-3 p-4">
-    <h6 class="fw-bold mb-2"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Conferma eliminazione</h6>
+    <h6 class="fw-bold mb-2">
+      <i class="bi bi-exclamation-triangle text-danger me-2"></i>Conferma eliminazione
+    </h6>
     <p class="text-muted small mb-3">
-      Stai per eliminare <strong>{{ productToDelete.name }}</strong>. L'operazione non è reversibile.
+      Stai per eliminare <strong>{{ productToDelete.name }}</strong>.
+      L'operazione non è reversibile.
     </p>
     <div class="d-flex gap-2 justify-content-end">
       <button class="btn btn-sm btn-outline-secondary" (click)="productToDelete=null">Annulla</button>

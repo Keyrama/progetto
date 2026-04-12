@@ -2,34 +2,26 @@ package it.unifi.swam.cleanlabel.mappers;
 
 import it.unifi.swam.cleanlabel.dtos.IngredientDTO;
 import it.unifi.swam.cleanlabel.model.Ingredient;
+import org.mapstruct.*;
 
-public class IngredientMapper {
+import java.util.List;
 
-    public static IngredientDTO toDTO(Ingredient ingredient) {
-        if (ingredient == null) return null;
+@Mapper(componentModel = "spring", uses = {AllergenMapper.class})
+public interface IngredientMapper {
 
-        IngredientDTO dto = new IngredientDTO();
-        dto.setId(ingredient.getId());
-        dto.setName(ingredient.getName());
-        dto.setENumber(ingredient.getENumber());
-        dto.setDescription(ingredient.getDescription());
-        dto.setArtificial(ingredient.isArtificial());
-        dto.setRiskLevel(ingredient.getRiskLevel() != null
-            ? ingredient.getRiskLevel().name() : null);
-        return dto;
-    }
+    IngredientDTO toDTO(Ingredient ingredient);
 
-    public static Ingredient toEntity(IngredientDTO dto) {
-        if (dto == null) return null;
+    List<IngredientDTO> toDTOList(List<Ingredient> ingredients);
 
-        Ingredient ingredient = new Ingredient();
-        ingredient.setName(dto.getName());
-        ingredient.setENumber(dto.getENumber());
-        ingredient.setDescription(dto.getDescription());
-        ingredient.setArtificial(dto.isArtificial());
-        if (dto.getRiskLevel() != null) {
-            ingredient.setRiskLevel(Ingredient.RiskLevel.valueOf(dto.getRiskLevel()));
-        }
-        return ingredient;
-    }
+    /**
+     * Maps DTO to entity. Allergen IDs are resolved by IngredientService,
+     * so the allergens list on the DTO is ignored during entity creation.
+     */
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "allergens", ignore = true)
+    Ingredient toEntity(IngredientDTO dto);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "allergens", ignore = true)
+    void updateEntity(IngredientDTO dto, @MappingTarget Ingredient ingredient);
 }

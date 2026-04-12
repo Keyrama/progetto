@@ -99,3 +99,40 @@ body {
 }
 
 .spinner-border { color: var(--primary); }
+
+/* Score text classes (used outside score-badge) */
+.score-high   { color: var(--primary); }
+.score-medium { color: var(--warning); }
+.score-low    { color: var(--danger); }
+.score-unknown { color: #aaa; }
+
+/* Admin modal overlay */
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 1040;
+}
+
+.modal-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(700px, 95vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  z-index: 1050;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.2);
+}
+
+.delete-confirm-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(420px, 90vw);
+  z-index: 1050;
+}

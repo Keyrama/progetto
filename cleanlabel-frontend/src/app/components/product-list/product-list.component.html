@@ -1,26 +1,23 @@
 <div class="container py-4">
   <div class="row g-4">
+
     <!-- Sidebar filtri -->
     <div class="col-lg-3">
       <app-product-filter
         [filter]="filter"
-        (filterChange)="onFilterChange($event)">
+        (filterChange)="onFilterChange($event)"
+        (reset)="onResetFilter()">
       </app-product-filter>
     </div>
 
     <!-- Griglia prodotti -->
     <div class="col-lg-9">
+
       <!-- Header risultati -->
       <div class="d-flex justify-content-between align-items-center mb-3">
         <span class="text-muted small">
           <strong>{{ totalElements }}</strong> prodotti trovati
         </span>
-        <select class="form-select form-select-sm w-auto"
-                [(ngModel)]="pageSize" (change)="onPageSizeChange()">
-          <option value="6">6 per pagina</option>
-          <option value="12">12 per pagina</option>
-          <option value="24">24 per pagina</option>
-        </select>
       </div>
 
       <!-- Loading -->
@@ -31,13 +28,14 @@
 
       <!-- Empty state -->
       <div *ngIf="!loading && products.length === 0" class="text-center py-5">
-        <i class="bi bi-search" style="font-size:3rem; color:#ccc;"></i>
+        <i class="bi bi-search" style="font-size:3rem;color:#ccc;"></i>
         <p class="mt-3 text-muted">Nessun prodotto trovato con i filtri selezionati.</p>
         <button class="btn btn-primary btn-sm" (click)="onResetFilter()">Reset filtri</button>
       </div>
 
       <!-- Grid -->
-      <div *ngIf="!loading && products.length > 0" class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+      <div *ngIf="!loading && products.length > 0"
+           class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
         <div class="col" *ngFor="let product of products">
           <app-product-card
             [product]="product"
@@ -46,7 +44,7 @@
         </div>
       </div>
 
-      <!-- Paginazione -->
+      <!-- Paginazione client-side -->
       <nav *ngIf="totalPages > 1" class="mt-4 d-flex justify-content-center">
         <ul class="pagination pagination-sm">
           <li class="page-item" [class.disabled]="currentPage === 0">
@@ -64,6 +62,7 @@
           </li>
         </ul>
       </nav>
+
     </div>
   </div>
 </div>

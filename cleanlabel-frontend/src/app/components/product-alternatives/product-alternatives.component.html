@@ -1,55 +1,24 @@
-<div class="card border-0 rounded-3 shadow-sm p-4 mt-3">
-  <h6 class="fw-bold mb-3">
-    <i class="bi bi-arrow-up-circle me-2 text-success"></i>Alternative più sane
-  </h6>
-
-  <!-- Nessuna alternativa -->
-  <div *ngIf="!loading && alternatives.length === 0" class="text-center py-3">
-    <i class="bi bi-patch-check-fill text-success" style="font-size:2rem;"></i>
-    <p class="mt-2 text-muted small mb-0">
-      Ottima scelta! Non abbiamo trovato alternative significativamente migliori.
-    </p>
+<div class="card mt-2" *ngIf="!loading && alternatives.length > 0">
+  <div class="card-header">
+    <i class="bi bi-arrow-up-circle me-2 text-success"></i>Alternative più salutari
   </div>
-
-  <!-- Loading -->
-  <div *ngIf="loading" class="text-center py-3">
-    <div class="spinner-border spinner-border-sm text-success" role="status"></div>
-  </div>
-
-  <!-- Lista alternative -->
-  <div *ngFor="let alt of alternatives; let i = index"
-       class="alt-card p-3 rounded-3 mb-3 border border-success border-opacity-25"
-       style="background: rgba(46,204,113,.04); cursor:pointer;"
-       (click)="goToProduct(alt.targetProduct.id)">
-
-    <div class="d-flex align-items-start gap-3">
-      <!-- Score delta badge -->
-      <div class="flex-shrink-0 text-center">
-        <div [class]="'score-badge ' + scoreClass(alt.targetProduct.healthScore)"
-             style="width:48px;height:48px;font-size:.95rem;">
-          {{ alt.targetProduct.healthScore }}
-        </div>
-        <div class="text-success fw-bold mt-1" style="font-size:.75rem;">
-          +{{ alt.scoreDelta }} pt
+  <div class="row g-3 p-3">
+    <div class="col-md-4" *ngFor="let alt of alternatives">
+      <div class="card h-100 border-success cursor-pointer" (click)="goToProduct(alt.productId)"
+           style="cursor:pointer">
+        <div class="card-body">
+          <h6 class="card-title mb-0">{{ alt.productName }}</h6>
+          <small class="text-muted">{{ alt.brand }}</small>
+          <div class="d-flex align-items-center gap-2 mt-2">
+            <span class="fw-bold" [ngClass]="scoreClass(alt.healthScore)">{{ alt.healthScore }}</span>
+            <span class="badge bg-success">+{{ alt.scoreDelta }} pt</span>
+            <span *ngIf="alt.cleanLabel" class="badge bg-success">
+              <i class="bi bi-patch-check"></i>
+            </span>
+          </div>
+          <p class="small text-muted mt-2 mb-0">{{ alt.reason }}</p>
         </div>
       </div>
-
-      <!-- Info prodotto alternativo -->
-      <div class="flex-grow-1">
-        <div class="d-flex align-items-center gap-2 mb-1">
-          <span class="fw-semibold">{{ alt.targetProduct.name }}</span>
-          <span *ngIf="alt.targetProduct.isCleanLabel"
-                class="badge bg-success" style="font-size:.65rem;">
-            <i class="bi bi-patch-check-fill me-1"></i>Clean
-          </span>
-        </div>
-        <div class="text-muted small mb-1">{{ alt.targetProduct.brand }}</div>
-        <p class="small mb-0" style="color:#555;">
-          <i class="bi bi-info-circle me-1 text-success"></i>{{ alt.reason }}
-        </p>
-      </div>
-
-      <i class="bi bi-chevron-right text-muted flex-shrink-0 mt-1"></i>
     </div>
   </div>
 </div>
