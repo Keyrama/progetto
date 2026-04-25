@@ -1,0 +1,80 @@
+Lo score viene calcolato sommando 4 puntenggi, tutti con max 25.
+
+1 - NUTRITIONAL SUB-SCORE:
+zuccheri
+grassi
+sale
+
+Per ogni nutriente si calcola una penalità -> penalty = valore / soglia (max 1.0)
+
+Poi:
+media_penalità = (sugar + fat + salt) / 3
+score = 25 * (1 - media_penalità)
+
+2 - CLEANLINESS SUB-SCORE:
+Valuta quanti ingredienti sono artificiali
+
+ratio = ingredienti_artificiali / ingredienti_totali
+score = 25 * (1 - ratio)
+
+3- RISK SUB-SCORE:
+Penalizza ingredienti con rischio:
+
+HIGH -> -2 punti ciascuno
+MEDIUM -> -1 punto ciascuno
+
+penalty = HIGH*2 + MEDIUM*1
+score = max(0, 25 - penalty)
+
+4 - POSITIVE NUTRIENTS SUB-SCORE:
+Premia nutrienti “buoni”:
+
+proteine (>=20g) -> max 12 punti
+fibre (>=6g) -> max 13 punti
+proteine_score = min(12, proteine * 0.6)
+fibre_score    = min(13, fibre * 2.0)
+
+STRATEGY:
+Tutte le classi hanno: @Component
+
+Spring crea un’istanza di ciascun validator, le mette in memoria come bean e le rende disponibili come lista.
+
+List<ClaimValidatorStrategy> strategies = [
+    FatReducedValidator,
+    HighFiberValidator,
+    NoArtificialIngredientsValidator,
+    NoHighRiskIngredientsValidator,
+    SugarBelowThresholdValidator
+];
+
+Cosa fanno i singoli validator:
+
+1 - FATREDUCEDVALIDATOR
+
+fats <= threshold
+default = 3g
+oppure preso dal claim
+Tipo di logica: upper bound (≤)
+
+2 - HIGHFIBERVALIDATOR
+
+
+fiber >= threshold
+default = 6g
+Tipo di logica: lower bound (≥)
+
+3 - NOARTIFICIALINGREDIENTSVALIDATOR
+
+NON esistono ingredienti artificiali
+Tipo di logica: boolean / presenza
+
+4 - NOHIGHRISKINGRENTSVALIDATOR:
+
+NON esistono ingredienti HIGH risk
+Tipo di logica: boolean / filtro su enum
+
+5 - SUGARBELOWTHRESHOLDVALIDATOR
+
+sugars <= threshold
+default = 0.5g
+Tipo di logica: upper bound (≤)
