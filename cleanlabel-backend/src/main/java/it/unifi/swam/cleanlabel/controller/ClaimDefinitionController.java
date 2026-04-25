@@ -1,7 +1,10 @@
 package it.unifi.swam.cleanlabel.controller;
 
+import it.unifi.swam.cleanlabel.config.RoleGuard;
 import it.unifi.swam.cleanlabel.dtos.ClaimDefinitionDTO;
+import it.unifi.swam.cleanlabel.model.User;
 import it.unifi.swam.cleanlabel.service.ClaimDefinitionService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,13 +15,10 @@ import java.net.URI;
 import java.util.List;
 
 /**
- * REST controller for the ClaimDefinition master library.
- *
- * Base path: /api/claims/definitions
- *
- * The library is seeded at boot via data.sql.
- * GET endpoints are public (used by the FE to decode labels).
- * POST/PUT/DELETE are for SPECIALIST/CORPORATE roles only (mocked).
+ * Role matrix:
+ *   GET              — open (all roles — consumers need to read the library)
+ *   POST / PUT       — SPECIALIST, CORPORATE (experts manage the claim library)
+ *   DELETE           — CORPORATE only
  */
 @RestController
 @RequestMapping("/api/claims/definitions")
@@ -26,20 +26,12 @@ import java.util.List;
 public class ClaimDefinitionController {
 
     private final ClaimDefinitionService claimDefinitionService;
+    private final RoleGuard roleGuard;
 
-    // ── GET /api/claims/definitions ────────────────────────────────────────────
-
-    /**
-     * Returns all claim definitions.
-     * Optional filter:
-     *   ?misleading=true     — only inherently misleading claims
-     *   ?type=MARKETING      — filter by claim type (NUTRITIONAL, HEALTH, MARKETING)
-     */
     @GetMapping
     public ResponseEntity<List<ClaimDefinitionDTO>> getAll(
             @RequestParam(required = false) Boolean misleading,
             @RequestParam(required = false) String type) {
-
         return ResponseEntity.ok(claimDefinitionService.findAll(misleading, type));
     }
 
@@ -49,7 +41,11 @@ public class ClaimDefinitionController {
     }
 
     @PostMapping
-    public ResponseEntity<ClaimDefinitionDTO> create(@Valid @RequestBody ClaimDefinitionDTO dto) {
+    public ResponseEntity<ClaimDefinitionDTO> create(
+            @Valid @RequestBody ClaimDefinitionDTO dto,
+            HttpServletRequest request) {
+
+        roleGuard.require(request, User.Role.SPECIALIST, User.Role.CORPORATE);
         ClaimDefinitionDTO created = claimDefinitionService.create(dto);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}").buildAndExpand(created.getId()).toUri();
@@ -58,12 +54,20 @@ public class ClaimDefinitionController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ClaimDefinitionDTO> update(
-            @PathVariable Long id, @Valid @RequestBody ClaimDefinitionDTO dto) {
+            @PathVariable Long id,
+            @Valid @RequestBody ClaimDefinitionDTO dto,
+            HttpServletRequest request) {
+
+        roleGuard.require(request, User.Role.SPECIALIST, User.Role.CORPORATE);
         return ResponseEntity.ok(claimDefinitionService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+
+        roleGuard.require(request, User.Role.CORPORATE);
         claimDefinitionService.delete(id);
         return ResponseEntity.noContent().build();
     }

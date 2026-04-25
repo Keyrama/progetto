@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { ProductDTO, ProductCategoryDTO } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import { AuthService } from '../../services/auth.service';
@@ -9,7 +10,9 @@ import { Router } from '@angular/router';
   templateUrl: './admin-catalogue.component.html',
   styleUrls: ['./admin-catalogue.component.scss'],
 })
-export class AdminCatalogueComponent implements OnInit {
+export class AdminCatalogueComponent implements OnInit, OnDestroy {
+  activeTab: 'products' | 'categories' | 'ingredients' = 'products';
+
   products: ProductDTO[] = [];
   categories: ProductCategoryDTO[] = [];
   loading = true;
@@ -19,6 +22,8 @@ export class AdminCatalogueComponent implements OnInit {
   toastMsg = '';
   toastError = false;
 
+  private userSub!: Subscription;
+
   constructor(
     private productService: ProductService,
     public auth: AuthService,
@@ -26,13 +31,26 @@ export class AdminCatalogueComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Guard: redirect non-CORPORATE users
+    // Guard iniziale
     if (!this.auth.hasRole('CORPORATE')) {
       this.router.navigate(['/products']);
       return;
     }
+
     this.load();
-    this.productService.getCategories().subscribe(c => this.categories = c);
+    this.reloadCategories();
+
+    // Reagisce in tempo reale al cambio di ruolo
+    this.userSub = this.auth.currentUser$.subscribe(user => {
+      const isCorporate = user?.role === 'CORPORATE';
+      if (!isCorporate) {
+        this.router.navigate(['/products']);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.userSub?.unsubscribe();
   }
 
   load() {
@@ -43,8 +61,29 @@ export class AdminCatalogueComponent implements OnInit {
     });
   }
 
-  openCreate() { this.selectedProduct = null; this.showForm = true; }
-  openEdit(p: ProductDTO) { this.selectedProduct = p; this.showForm = true; }
+  reloadCategories() {
+    this.productService.getCategories().subscribe(c => this.categories = c);
+  }
+
+  openCreate() {
+    this.selectedProduct = null;
+    this.reloadCategories();
+    this.showForm = true;
+  }
+
+  openEdit(p: ProductDTO) {
+    this.productService.getProduct(p.id!).subscribe(fullProduct => {
+      this.selectedProduct = {
+        ...fullProduct,
+        ingredientIds: fullProduct.ingredients?.map(i => i.id!) ?? [],
+        mayContainAllergenIds: fullProduct.mayContainAllergens?.map(a => a.id) ?? [],
+        categoryId: fullProduct.categoryId,
+      };
+      this.reloadCategories();
+      this.showForm = true;
+    });
+  }
+
   closeForm() { this.showForm = false; this.selectedProduct = null; }
 
   onSaved() {
@@ -54,7 +93,7 @@ export class AdminCatalogueComponent implements OnInit {
   }
 
   onSaveError() {
-    this.showToast('Errore durante il salvataggio. Verifica i dati.', true);
+    this.showToast('Errore durante il salvataggio.', true);
   }
 
   confirmDelete(p: ProductDTO) { this.productToDelete = p; }

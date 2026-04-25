@@ -10,70 +10,106 @@
         Ruolo attivo: <span class="badge bg-danger">CORPORATE</span>
       </small>
     </div>
-    <button class="btn btn-primary" (click)="openCreate()">
+    <!-- Bottone nuovo prodotto visibile solo nella tab prodotti -->
+    <button *ngIf="activeTab === 'products'" class="btn btn-primary" (click)="openCreate()">
       <i class="bi bi-plus-lg me-2"></i>Nuovo prodotto
     </button>
   </div>
 
-  <!-- Loading -->
-  <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border" role="status"></div>
-  </div>
+  <!-- Tab navigation -->
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="activeTab === 'products'"
+              (click)="activeTab = 'products'">
+        <i class="bi bi-box me-1"></i>Prodotti
+        <span class="badge bg-secondary ms-1">{{ products.length }}</span>
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="activeTab === 'categories'"
+              (click)="activeTab = 'categories'">
+        <i class="bi bi-tag me-1"></i>Categorie
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="activeTab === 'ingredients'"
+              (click)="activeTab = 'ingredients'">
+        <i class="bi bi-capsule me-1"></i>Ingredienti
+      </button>
+    </li>
+  </ul>
 
-  <!-- Tabella prodotti -->
-  <div *ngIf="!loading" class="card border-0 shadow-sm rounded-3">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-        <tr>
-          <th>Prodotto</th>
-          <th>Brand</th>
-          <th>Categoria</th>
-          <th class="text-center">Score</th>
-          <th class="text-center">Clean</th>
-          <th class="text-end">Azioni</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr *ngFor="let p of products">
-          <td><span class="fw-semibold">{{ p.name }}</span></td>
-          <td class="text-muted small">{{ p.brand }}</td>
-          <td>
-            <!-- categoryName is the flat string from the summary DTO -->
-            <span *ngIf="p.categoryName" class="badge bg-light text-secondary border">
-                {{ p.categoryName }}
-              </span>
-          </td>
-          <td class="text-center">
-              <span [ngClass]="'score-badge d-inline-flex ' + scoreClass(p.healthScore)"
-                    style="width:36px;height:36px;font-size:.8rem;">
-                {{ p.healthScore ?? '?' }}
-              </span>
-          </td>
-          <td class="text-center">
-            <i *ngIf="p.cleanLabel"  class="bi bi-check-circle-fill text-success fs-5"></i>
-            <i *ngIf="!p.cleanLabel" class="bi bi-x-circle text-muted fs-5"></i>
-          </td>
-          <td class="text-end">
-            <button class="btn btn-sm btn-outline-secondary me-1"
-                    (click)="openEdit(p)" title="Modifica">
-              <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-danger"
-                    (click)="confirmDelete(p)" title="Elimina">
-              <i class="bi bi-trash"></i>
-            </button>
-          </td>
-        </tr>
-        <tr *ngIf="products.length === 0">
-          <td colspan="6" class="text-center text-muted py-4">Nessun prodotto nel catalogo.</td>
-        </tr>
-        </tbody>
-      </table>
+  <!-- Tab: Prodotti -->
+  <ng-container *ngIf="activeTab === 'products'">
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border" role="status"></div>
     </div>
-  </div>
 
-  <!-- Modale form -->
+    <div *ngIf="!loading" class="card border-0 shadow-sm rounded-3">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+          <tr>
+            <th>Prodotto</th>
+            <th>Brand</th>
+            <th>Categoria</th>
+            <th class="text-center">Score</th>
+            <th class="text-center">Clean</th>
+            <th class="text-end">Azioni</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let p of products">
+            <td><span class="fw-semibold">{{ p.name }}</span></td>
+            <td class="text-muted small">{{ p.brand }}</td>
+            <td>
+                <span *ngIf="p.categoryName" class="badge bg-light text-secondary border">
+                  {{ p.categoryName }}
+                </span>
+            </td>
+            <td class="text-center">
+                <span [ngClass]="'score-badge d-inline-flex ' + scoreClass(p.healthScore)"
+                      style="width:36px;height:36px;font-size:.8rem;">
+                  {{ p.healthScore ?? '?' }}
+                </span>
+            </td>
+            <td class="text-center">
+              <i *ngIf="p.cleanLabel"  class="bi bi-check-circle-fill text-success fs-5"></i>
+              <i *ngIf="!p.cleanLabel" class="bi bi-x-circle text-muted fs-5"></i>
+            </td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-secondary me-1"
+                      (click)="openEdit(p)" title="Modifica">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger"
+                      (click)="confirmDelete(p)" title="Elimina">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="products.length === 0">
+            <td colspan="6" class="text-center text-muted py-4">
+              Nessun prodotto. Creane uno con il bottone in alto a destra.
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Tab: Categorie -->
+  <ng-container *ngIf="activeTab === 'categories'">
+    <app-admin-categories></app-admin-categories>
+  </ng-container>
+
+  <!-- Tab: Ingredienti -->
+  <ng-container *ngIf="activeTab === 'ingredients'">
+    <app-admin-ingredients></app-admin-ingredients>
+  </ng-container>
+
+  <!-- Modale form prodotto -->
   <div class="modal-backdrop-custom" *ngIf="showForm" (click)="closeForm()"></div>
   <div class="modal-panel" *ngIf="showForm">
     <app-product-form
@@ -100,7 +136,7 @@
     </div>
   </div>
 
-  <!-- Modale conferma elimina -->
+  <!-- Modale conferma elimina prodotto -->
   <div class="modal-backdrop-custom" *ngIf="productToDelete" (click)="productToDelete=null"></div>
   <div *ngIf="productToDelete" class="delete-confirm-modal card border-0 shadow-lg rounded-3 p-4">
     <h6 class="fw-bold mb-2">

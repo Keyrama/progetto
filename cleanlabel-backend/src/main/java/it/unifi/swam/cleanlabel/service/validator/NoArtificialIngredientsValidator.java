@@ -35,8 +35,8 @@ public class NoArtificialIngredientsValidator implements ClaimValidatorStrategy 
         }
 
         String names = artificial.stream()
-                .map(i -> i.getENumber() != null
-                        ? i.getName() + " (" + i.getENumber() + ")"
+                .map(i -> i.getAdditiveCode() != null
+                        ? i.getName() + " (" + i.getAdditiveCode() + ")"
                         : i.getName())
                 .collect(Collectors.joining(", "));
 

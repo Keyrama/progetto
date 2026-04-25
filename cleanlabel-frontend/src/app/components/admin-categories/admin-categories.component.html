@@ -1,0 +1,82 @@
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom">
+    <h6 class="mb-0 fw-bold"><i class="bi bi-tag me-2 text-success"></i>Categorie</h6>
+    <button class="btn btn-sm btn-primary" (click)="openCreate()">
+      <i class="bi bi-plus-lg me-1"></i>Nuova
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-4">
+    <div class="spinner-border spinner-border-sm text-success"></div>
+  </div>
+
+  <!-- Lista -->
+  <ul class="list-group list-group-flush" *ngIf="!loading">
+    <li *ngFor="let cat of categories"
+        class="list-group-item d-flex justify-content-between align-items-center">
+      <div>
+        <span class="fw-semibold">{{ cat.name }}</span>
+        <small *ngIf="cat.description" class="text-muted ms-2">{{ cat.description }}</small>
+      </div>
+      <div class="d-flex gap-1">
+        <button class="btn btn-xs btn-outline-secondary" (click)="openEdit(cat)" title="Modifica">
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-xs btn-outline-danger" (click)="deleteCategory(cat)" title="Elimina">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </li>
+    <li *ngIf="categories.length === 0" class="list-group-item text-muted text-center py-3">
+      Nessuna categoria. Creane una.
+    </li>
+  </ul>
+
+  <!-- Form inline -->
+  <div *ngIf="showForm" class="card-footer bg-light border-top p-3">
+    <p class="fw-semibold small mb-2">
+      {{ editing ? 'Modifica categoria' : 'Nuova categoria' }}
+    </p>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="row g-2 align-items-end">
+        <div class="col-sm-4">
+          <label class="form-label small">Nome *</label>
+          <input class="form-control form-control-sm" formControlName="name"
+                 placeholder="es. Latticini"
+                 [class.is-invalid]="f['name'].invalid && f['name'].touched" />
+          <div class="invalid-feedback">Campo obbligatorio</div>
+        </div>
+        <div class="col-sm-5">
+          <label class="form-label small">Descrizione</label>
+          <input class="form-control form-control-sm" formControlName="description"
+                 placeholder="Breve descrizione (opzionale)" />
+        </div>
+        <div class="col-sm-3 d-flex gap-2">
+          <button type="submit" class="btn btn-sm btn-primary flex-grow-1" [disabled]="saving">
+            <span *ngIf="saving" class="spinner-border spinner-border-sm me-1"></span>
+            Salva
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="closeForm()">
+            Annulla
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div *ngIf="toastMsg" class="toast show align-items-center border-0"
+       [ngClass]="toastError ? 'text-bg-danger' : 'text-bg-success'">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i class="bi me-2" [ngClass]="toastError ? 'bi-x-circle' : 'bi-check-circle'"></i>
+        {{ toastMsg }}
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto"
+              (click)="toastMsg=''"></button>
+    </div>
+  </div>
+</div>

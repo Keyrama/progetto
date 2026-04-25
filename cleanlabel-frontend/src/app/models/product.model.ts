@@ -28,7 +28,7 @@ export interface AllergenDTO {
 }
 
 export interface ProductCategoryDTO {
-  id: number;
+  id?: number;
   name: string;
   description?: string;
 }
@@ -48,7 +48,7 @@ export interface NutritionalValueDTO {
 export interface IngredientDTO {
   id?: number;
   name: string;
-  eNumber?: string;
+  additiveCode?: string;
   description?: string;
   artificial: boolean;
   riskLevel: RiskLevel;

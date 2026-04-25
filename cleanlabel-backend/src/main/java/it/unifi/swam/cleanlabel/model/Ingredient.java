@@ -30,11 +30,11 @@ public class Ingredient {
     private String name;
 
     /**
-     * E-number if this is a food additive (e.g. "E621" for MSG).
+     * additiveCode (E-number) if this is a food additive (e.g. "E621" for MSG).
      * Null for natural ingredients.
      */
-    @Column(name = "e_number", length = 10)
-    private String eNumber;
+    @Column(name = "additive_code", length = 10)
+    private String additiveCode;
 
     /** Plain-language explanation of what this ingredient is and its role in food. */
     @Column(length = 1000)

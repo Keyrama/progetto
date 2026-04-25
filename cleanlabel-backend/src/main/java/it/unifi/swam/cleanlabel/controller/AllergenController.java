@@ -1,7 +1,10 @@
 package it.unifi.swam.cleanlabel.controller;
 
+import it.unifi.swam.cleanlabel.config.RoleGuard;
 import it.unifi.swam.cleanlabel.dtos.AllergenDTO;
+import it.unifi.swam.cleanlabel.model.User;
 import it.unifi.swam.cleanlabel.service.AllergenService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,13 +15,10 @@ import java.net.URI;
 import java.util.List;
 
 /**
- * REST controller for Allergen resources.
- *
- * Base path: /api/allergens
- *
- * The 14 major EU allergens are seeded at boot.
- * POST/PUT/DELETE are provided for CORPORATE/SPECIALIST roles
- * (access control is mocked — no actual auth enforcement in prototype).
+ * Role matrix:
+ *   GET              — open (all roles)
+ *   POST / PUT       — CORPORATE only (allergen master data is company-managed)
+ *   DELETE           — CORPORATE only
  */
 @RestController
 @RequestMapping("/api/allergens")
@@ -26,6 +26,7 @@ import java.util.List;
 public class AllergenController {
 
     private final AllergenService allergenService;
+    private final RoleGuard roleGuard;
 
     @GetMapping
     public ResponseEntity<List<AllergenDTO>> getAll() {
@@ -38,7 +39,11 @@ public class AllergenController {
     }
 
     @PostMapping
-    public ResponseEntity<AllergenDTO> create(@Valid @RequestBody AllergenDTO dto) {
+    public ResponseEntity<AllergenDTO> create(
+            @Valid @RequestBody AllergenDTO dto,
+            HttpServletRequest request) {
+
+        roleGuard.require(request, User.Role.CORPORATE);
         AllergenDTO created = allergenService.create(dto);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}").buildAndExpand(created.getId()).toUri();
@@ -47,12 +52,20 @@ public class AllergenController {
 
     @PutMapping("/{id}")
     public ResponseEntity<AllergenDTO> update(
-            @PathVariable Long id, @Valid @RequestBody AllergenDTO dto) {
+            @PathVariable Long id,
+            @Valid @RequestBody AllergenDTO dto,
+            HttpServletRequest request) {
+
+        roleGuard.require(request, User.Role.CORPORATE);
         return ResponseEntity.ok(allergenService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+
+        roleGuard.require(request, User.Role.CORPORATE);
         allergenService.delete(id);
         return ResponseEntity.noContent().build();
     }

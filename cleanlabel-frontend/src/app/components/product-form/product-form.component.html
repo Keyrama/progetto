@@ -89,7 +89,7 @@
           <label class="form-check-label small d-flex align-items-center gap-2"
                  [for]="'ing-' + ing.id">
             {{ ing.name }}
-            <span *ngIf="ing.eNumber" class="text-muted">({{ ing.eNumber }})</span>
+            <span *ngIf="ing.additiveCode" class="text-muted">({{ ing.additiveCode }})</span>
             <i class="bi bi-circle-fill" style="font-size:.5rem;"
                [ngClass]="riskClass(ing.riskLevel)"></i>
             <span *ngIf="ing.artificial" class="badge bg-secondary" style="font-size:.65rem;">

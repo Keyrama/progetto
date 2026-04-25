@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import {
   ProductDTO, ProductCategoryDTO, IngredientDTO,
   AllergenDTO, AlternativeSuggestionDTO,
@@ -19,17 +19,12 @@ export class ProductService {
 
   // ── Products ──────────────────────────────────────────────────────────────
 
-  /**
-   * Returns the full product list.
-   * The backend returns a plain List<ProductDTO> — pagination is done client-side.
-   */
   getProducts(filter: ProductFilter = {}): Observable<ProductDTO[]> {
     if (this.useMock) return of([]);
     let params = new HttpParams();
     if (filter.search)     params = params.set('search', filter.search);
     if (filter.category)   params = params.set('category', filter.category.toString());
     if (filter.cleanLabel) params = params.set('cleanLabel', 'true');
-
     return this.http.get<ProductDTO[]>(`${this.api}/products`, { params })
       .pipe(catchError(() => { this.useMock = true; return of([]); }));
   }
@@ -38,25 +33,80 @@ export class ProductService {
     return this.http.get<ProductDTO>(`${this.api}/products/${id}`);
   }
 
-  /** Requires CORPORATE role — sends X-Mock-User-Role header */
   createProduct(data: ProductDTO): Observable<ProductDTO> {
     return this.http.post<ProductDTO>(`${this.api}/products`, data, {
       headers: this.auth.roleHeader
     });
   }
 
-  /** Requires CORPORATE role */
   updateProduct(id: number, data: ProductDTO): Observable<ProductDTO> {
     return this.http.put<ProductDTO>(`${this.api}/products/${id}`, data, {
       headers: this.auth.roleHeader
     });
   }
 
-  /** Requires CORPORATE role */
   deleteProduct(id: number): Observable<void> {
     return this.http.delete<void>(`${this.api}/products/${id}`, {
       headers: this.auth.roleHeader
     });
+  }
+
+  // ── Categories ────────────────────────────────────────────────────────────
+
+  getCategories(): Observable<ProductCategoryDTO[]> {
+    if (this.useMock) return of([]);
+    return this.http.get<ProductCategoryDTO[]>(`${this.api}/categories`)
+      .pipe(catchError(() => { this.useMock = true; return of([]); }));
+  }
+
+  createCategory(data: ProductCategoryDTO): Observable<ProductCategoryDTO> {
+    return this.http.post<ProductCategoryDTO>(`${this.api}/categories`, data, {
+      headers: this.auth.roleHeader
+    });
+  }
+
+  updateCategory(data: ProductCategoryDTO, id?: number): Observable<ProductCategoryDTO> {
+    return this.http.put<ProductCategoryDTO>(`${this.api}/categories/${id}`, data, {
+      headers: this.auth.roleHeader
+    });
+  }
+
+  deleteCategory(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.api}/categories/${id}`, {
+      headers: this.auth.roleHeader
+    });
+  }
+
+  // ── Ingredients ───────────────────────────────────────────────────────────
+
+  getIngredients(): Observable<IngredientDTO[]> {
+    return this.http.get<IngredientDTO[]>(`${this.api}/ingredients`)
+      .pipe(catchError(() => of([])));
+  }
+
+  createIngredient(data: IngredientDTO): Observable<IngredientDTO> {
+    return this.http.post<IngredientDTO>(`${this.api}/ingredients`, data, {
+      headers: this.auth.roleHeader
+    });
+  }
+
+  updateIngredient(id: number, data: IngredientDTO): Observable<IngredientDTO> {
+    return this.http.put<IngredientDTO>(`${this.api}/ingredients/${id}`, data, {
+      headers: this.auth.roleHeader
+    });
+  }
+
+  deleteIngredient(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.api}/ingredients/${id}`, {
+      headers: this.auth.roleHeader
+    });
+  }
+
+  // ── Allergens ─────────────────────────────────────────────────────────────
+
+  getAllergens(): Observable<AllergenDTO[]> {
+    return this.http.get<AllergenDTO[]>(`${this.api}/allergens`)
+      .pipe(catchError(() => of([])));
   }
 
   // ── Alternatives ──────────────────────────────────────────────────────────
@@ -70,11 +120,6 @@ export class ProductService {
 
   // ── Claim analysis ────────────────────────────────────────────────────────
 
-  /**
-   * Requires SPECIALIST or CORPORATE role.
-   * Sends raw claim strings, receives analysis results with
-   * misleading flags and dynamic validation verdicts.
-   */
   analyzeClaims(productId: number, rawClaims: string[]): Observable<ProductClaimDTO[]> {
     const body: ClaimAnalysisRequestDTO = { rawClaims };
     return this.http.post<ProductClaimDTO[]>(
@@ -90,27 +135,5 @@ export class ProductService {
     return this.http.get<ProductClaimDTO[]>(
       `${this.api}/products/${productId}/claims`, { params }
     ).pipe(catchError(() => of([])));
-  }
-
-  // ── Categories ────────────────────────────────────────────────────────────
-
-  getCategories(): Observable<ProductCategoryDTO[]> {
-    if (this.useMock) return of([]);
-    return this.http.get<ProductCategoryDTO[]>(`${this.api}/categories`)
-      .pipe(catchError(() => { this.useMock = true; return of([]); }));
-  }
-
-  // ── Ingredients ───────────────────────────────────────────────────────────
-
-  getIngredients(): Observable<IngredientDTO[]> {
-    return this.http.get<IngredientDTO[]>(`${this.api}/ingredients`)
-      .pipe(catchError(() => of([])));
-  }
-
-  // ── Allergens ─────────────────────────────────────────────────────────────
-
-  getAllergens(): Observable<AllergenDTO[]> {
-    return this.http.get<AllergenDTO[]>(`${this.api}/allergens`)
-      .pipe(catchError(() => of([])));
   }
 }

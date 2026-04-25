@@ -71,7 +71,7 @@
               *ngFor="let i of product.ingredients">
             <div>
               <strong>{{ i.name }}</strong>
-              <span *ngIf="i.eNumber" class="text-muted ms-1">({{ i.eNumber }})</span>
+              <span *ngIf="i.additiveCode" class="text-muted ms-1">({{ i.additiveCode }})</span>
               <span *ngIf="i.artificial" class="badge bg-secondary ms-2">Artificiale</span>
             </div>
             <span class="badge" [ngClass]="riskBadgeClass(i.riskLevel)">{{ i.riskLevel }}</span>

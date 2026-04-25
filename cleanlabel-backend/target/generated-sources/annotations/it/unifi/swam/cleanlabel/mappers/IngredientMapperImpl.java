@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-04-12T16:35:55+0200",
+    date = "2026-04-25T18:35:23+0200",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.9 (Microsoft)"
 )
 @Component
@@ -29,6 +29,7 @@ public class IngredientMapperImpl implements IngredientMapper {
 
         ingredientDTO.id( ingredient.getId() );
         ingredientDTO.name( ingredient.getName() );
+        ingredientDTO.additiveCode( ingredient.getAdditiveCode() );
         ingredientDTO.description( ingredient.getDescription() );
         ingredientDTO.artificial( ingredient.isArtificial() );
         ingredientDTO.riskLevel( ingredient.getRiskLevel() );
@@ -61,7 +62,7 @@ public class IngredientMapperImpl implements IngredientMapper {
 
         ingredient.setId( dto.getId() );
         ingredient.setName( dto.getName() );
-        ingredient.setENumber( dto.getENumber() );
+        ingredient.setAdditiveCode( dto.getAdditiveCode() );
         ingredient.setDescription( dto.getDescription() );
         ingredient.setArtificial( dto.isArtificial() );
         ingredient.setRiskLevel( dto.getRiskLevel() );
@@ -81,8 +82,8 @@ public class IngredientMapperImpl implements IngredientMapper {
         if ( dto.getName() != null ) {
             ingredient.setName( dto.getName() );
         }
-        if ( dto.getENumber() != null ) {
-            ingredient.setENumber( dto.getENumber() );
+        if ( dto.getAdditiveCode() != null ) {
+            ingredient.setAdditiveCode( dto.getAdditiveCode() );
         }
         if ( dto.getDescription() != null ) {
             ingredient.setDescription( dto.getDescription() );

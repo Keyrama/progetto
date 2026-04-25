@@ -1,0 +1,185 @@
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom">
+    <h6 class="mb-0 fw-bold"><i class="bi bi-capsule me-2 text-success"></i>Ingredienti</h6>
+    <button class="btn btn-sm btn-primary" (click)="openCreate()">
+      <i class="bi bi-plus-lg me-1"></i>Nuovo
+    </button>
+  </div>
+
+  <!-- Filtro -->
+  <div class="p-2 border-bottom">
+    <input type="text" class="form-control form-control-sm"
+           placeholder="Cerca per nome o E-number…"
+           [(ngModel)]="filterText" />
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-4">
+    <div class="spinner-border spinner-border-sm text-success"></div>
+  </div>
+
+  <!-- Tabella -->
+  <div class="table-responsive" *ngIf="!loading">
+    <table class="table table-sm table-hover align-middle mb-0">
+      <thead class="table-light">
+      <tr>
+        <th>Nome</th>
+        <th>E-number</th>
+        <th class="text-center">Artificiale</th>
+        <th class="text-center">Rischio</th>
+        <th>Allergeni</th>
+        <th class="text-end">Azioni</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let ing of filtered">
+        <td class="fw-semibold">{{ ing.name }}</td>
+        <td class="text-muted small">{{ ing.additiveCode ?? '—' }}</td>
+        <td class="text-center">
+          <i *ngIf="ing.artificial"  class="bi bi-check-circle-fill text-warning"></i>
+          <i *ngIf="!ing.artificial" class="bi bi-x-circle text-muted"></i>
+        </td>
+        <td class="text-center">
+            <span class="badge" [ngClass]="riskBadgeClass(ing.riskLevel)">
+              {{ ing.riskLevel }}
+            </span>
+        </td>
+        <td>
+            <span *ngFor="let a of ing.allergens"
+                  class="badge bg-danger me-1" style="font-size:.65rem;">
+              {{ a.code }}
+            </span>
+          <span *ngIf="!ing.allergens?.length" class="text-muted small">—</span>
+        </td>
+        <td class="text-end">
+          <button class="btn btn-xs btn-outline-secondary me-1"
+                  (click)="openEdit(ing)" title="Modifica">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-xs btn-outline-danger"
+                  (click)="deleteIngredient(ing)" title="Elimina">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
+      </tr>
+      <tr *ngIf="filtered.length === 0">
+        <td colspan="6" class="text-center text-muted py-3">
+          {{ filterText ? 'Nessun risultato.' : 'Nessun ingrediente. Creane uno.' }}
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modale form -->
+<div *ngIf="showForm"
+     style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1040;"
+     (click)="closeForm()"></div>
+
+<div *ngIf="showForm"
+     style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+            width:min(600px,95vw);max-height:90vh;overflow-y:auto;
+            background:white;border-radius:16px;z-index:1050;
+            box-shadow:0 16px 48px rgba(0,0,0,.2);">
+  <div class="p-4" (click)="$event.stopPropagation()">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="fw-bold mb-0">
+        <i class="bi bi-{{ editing ? 'pencil' : 'plus-circle' }} me-2 text-success"></i>
+        {{ editing ? 'Modifica ingrediente' : 'Nuovo ingrediente' }}
+      </h6>
+      <button class="btn btn-sm btn-outline-secondary" (click)="closeForm()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <!-- Nome + E-number -->
+      <div class="row g-3 mb-3">
+        <div class="col-sm-7">
+          <label class="form-label small fw-semibold">Nome *</label>
+          <input class="form-control" formControlName="name"
+                 placeholder="es. Farina di frumento"
+                 [class.is-invalid]="f['name'].invalid && f['name'].touched" />
+          <div class="invalid-feedback">Campo obbligatorio</div>
+        </div>
+        <div class="col-sm-5">
+          <label class="form-label small fw-semibold">E-number</label>
+          <input class="form-control" formControlName="additiveCode"
+                 placeholder="es. E621 (lascia vuoto se naturale)" />
+        </div>
+      </div>
+
+      <!-- Descrizione -->
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Descrizione</label>
+        <textarea class="form-control" formControlName="description" rows="2"
+                  placeholder="Breve descrizione del ruolo nell'alimento"></textarea>
+      </div>
+
+      <!-- Artificiale + Rischio -->
+      <div class="row g-3 mb-3">
+        <div class="col-sm-5 d-flex align-items-end pb-1">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="artificial"
+                   formControlName="artificial" />
+            <label class="form-check-label small" for="artificial">
+              <i class="bi bi-flask me-1 text-warning"></i>Ingrediente artificiale
+            </label>
+          </div>
+        </div>
+        <div class="col-sm-7">
+          <label class="form-label small fw-semibold">Livello di rischio *</label>
+          <select class="form-select" formControlName="riskLevel">
+            <option *ngFor="let r of riskLevels" [value]="r">{{ r }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Allergeni contenuti -->
+      <div class="mb-4" *ngIf="allergens.length > 0">
+        <label class="form-label small fw-semibold">
+          Allergeni contenuti in questo ingrediente
+          <span class="badge bg-secondary ms-1">{{ selectedAllergenIds.size }} selezionati</span>
+        </label>
+        <div class="border rounded p-2 d-flex flex-wrap gap-2">
+          <div *ngFor="let a of allergens" class="form-check form-check-inline mb-0">
+            <input class="form-check-input" type="checkbox"
+                   [id]="'a-' + a.id"
+                   [checked]="isAllergenSelected(a.id)"
+                   (change)="toggleAllergen(a.id)" />
+            <label class="form-check-label small" [for]="'a-' + a.id">{{ a.name }}</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottoni -->
+      <div class="d-flex gap-2 justify-content-end border-top pt-3">
+        <button type="button" class="btn btn-outline-secondary" (click)="closeForm()">
+          Annulla
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
+          <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!saving" class="bi bi-check-lg me-2"></i>
+          {{ editing ? 'Salva modifiche' : 'Crea ingrediente' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div *ngIf="toastMsg" class="toast show align-items-center border-0"
+       [ngClass]="toastError ? 'text-bg-danger' : 'text-bg-success'">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i class="bi me-2" [ngClass]="toastError ? 'bi-x-circle' : 'bi-check-circle'"></i>
+        {{ toastMsg }}
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto"
+              (click)="toastMsg=''"></button>
+    </div>
+  </div>
+</div>

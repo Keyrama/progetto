@@ -14,6 +14,8 @@ import { ProductDetailComponent } from './components/product-detail/product-deta
 import { ProductAlternativesComponent } from './components/product-alternatives/product-alternatives.component';
 import { ProductFormComponent } from './components/product-form/product-form.component';
 import { AdminCatalogueComponent } from './components/admin-catalogue/admin-catalogue.component';
+import { AdminCategoriesComponent } from './components/admin-categories/admin-categories.component';
+import { AdminIngredientsComponent } from './components/admin-ingredients/admin-ingredients.component';
 
 @NgModule({
   declarations: [
@@ -26,6 +28,8 @@ import { AdminCatalogueComponent } from './components/admin-catalogue/admin-cata
     ProductAlternativesComponent,
     ProductFormComponent,
     AdminCatalogueComponent,
+    AdminCategoriesComponent,
+    AdminIngredientsComponent,
   ],
   imports: [
     BrowserModule,

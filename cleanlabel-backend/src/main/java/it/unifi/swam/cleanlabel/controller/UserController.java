@@ -1,7 +1,10 @@
 package it.unifi.swam.cleanlabel.controller;
 
+import it.unifi.swam.cleanlabel.config.RoleGuard;
 import it.unifi.swam.cleanlabel.dtos.UserDTO;
+import it.unifi.swam.cleanlabel.model.User;
 import it.unifi.swam.cleanlabel.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,13 +15,11 @@ import java.net.URI;
 import java.util.List;
 
 /**
- * REST controller for User resources.
- *
- * Base path: /api/users
- *
- * NOTE: Authentication is mocked per assignment requirements.
- * GET /api/users/mock/{role} returns a pre-built mock user of the given role,
- * simulating a logged-in session without implementing actual auth.
+ * Role matrix:
+ *   GET /api/users/mock/{role}  — open (used to simulate login)
+ *   GET /api/users              — CORPORATE only
+ *   GET /api/users/{id}         — CORPORATE only
+ *   POST / PUT / DELETE         — CORPORATE only
  */
 @RestController
 @RequestMapping("/api/users")
@@ -26,19 +27,38 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final RoleGuard roleGuard;
+
+    /**
+     * Mock login — always open, no role required.
+     * Must be declared BEFORE /{id} to avoid Spring matching "mock" as an id.
+     */
+    @GetMapping("/mock/{role}")
+    public ResponseEntity<UserDTO> getMockUser(@PathVariable String role) {
+        return ResponseEntity.ok(userService.getMockUser(role));
+    }
 
     @GetMapping
-    public ResponseEntity<List<UserDTO>> getAll() {
+    public ResponseEntity<List<UserDTO>> getAll(HttpServletRequest request) {
+        roleGuard.require(request, User.Role.CORPORATE);
         return ResponseEntity.ok(userService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getById(@PathVariable Long id) {
+    public ResponseEntity<UserDTO> getById(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+
+        roleGuard.require(request, User.Role.CORPORATE);
         return ResponseEntity.ok(userService.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<UserDTO> create(@Valid @RequestBody UserDTO dto) {
+    public ResponseEntity<UserDTO> create(
+            @Valid @RequestBody UserDTO dto,
+            HttpServletRequest request) {
+
+        roleGuard.require(request, User.Role.CORPORATE);
         UserDTO created = userService.create(dto);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}").buildAndExpand(created.getId()).toUri();
@@ -47,25 +67,21 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<UserDTO> update(
-            @PathVariable Long id, @Valid @RequestBody UserDTO dto) {
+            @PathVariable Long id,
+            @Valid @RequestBody UserDTO dto,
+            HttpServletRequest request) {
+
+        roleGuard.require(request, User.Role.CORPORATE);
         return ResponseEntity.ok(userService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+
+        roleGuard.require(request, User.Role.CORPORATE);
         userService.delete(id);
         return ResponseEntity.noContent().build();
-    }
-
-    // ── Mock auth ──────────────────────────────────────────────────────────────
-
-    /**
-     * Returns a mock logged-in user for the given role.
-     * Used by the FE to simulate authentication without implementing real auth.
-     * E.g. GET /api/users/mock/CONSUMER
-     */
-    @GetMapping("/mock/{role}")
-    public ResponseEntity<UserDTO> getMockUser(@PathVariable String role) {
-        return ResponseEntity.ok(userService.getMockUser(role));
     }
 }
