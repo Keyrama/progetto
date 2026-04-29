@@ -33,10 +33,6 @@ body {
   font-weight: 700;
   font-size: 1rem;
   color: white;
-
-  &.score-high   { background: var(--primary); }
-  &.score-medium { background: var(--warning); }
-  &.score-low    { background: var(--danger); }
 }
 
 /* Product card */
