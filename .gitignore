@@ -1,0 +1,10 @@
+target/
+bin/
+.classpath
+.project
+.settings
+.directory
+.DS_Store
+.factorypath
+*.log
+*.log.*
