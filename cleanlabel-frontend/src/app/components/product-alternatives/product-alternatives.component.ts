@@ -22,13 +22,13 @@ export class ProductAlternativesComponent implements OnInit {
     });
   }
 
-  scoreClass(score: number): string {
-    if (score >= 70) return 'score-high';
-    if (score >= 40) return 'score-medium';
-    return 'score-low';
-  }
-
   goToProduct(id: number) {
     this.router.navigate(['/products', id]);
+  }
+
+  scoreClass(score: number): string {
+    if (score >= 70) return 'bg-success';
+    if (score >= 40) return 'bg-warning text-dark';
+    return 'bg-danger';
   }
 }

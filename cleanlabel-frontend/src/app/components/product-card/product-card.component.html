@@ -5,9 +5,12 @@
         <h6 class="card-title mb-1 fw-bold">{{ product.name }}</h6>
         <small class="text-muted">{{ product.brand }}</small>
       </div>
-      <div [class]="'score-badge flex-shrink-0 ' + scoreClass">
-        {{ product.healthScore ?? '?' }}
-      </div>
+      <div style="display:flex; flex-direction:column; align-items:center;">
+        <div [class]="'score-badge flex-shrink-0 ' + scoreClass">
+          {{ product.healthScore ?? '?' }}
+        </div>
+          <small class="text-center" style="font-size:.65rem;">Health Score</small>
+        </div>
     </div>
 
     <p class="card-text text-muted small flex-grow-1"
