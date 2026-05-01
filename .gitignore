@@ -8,6 +8,5 @@ bin/
 .factorypath
 *.log
 *.log.*
-.target*
 cleanlabel-backend/target*
 cleanlabel-frontend/target*
