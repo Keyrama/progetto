@@ -103,7 +103,7 @@ public class Product {
         return ingredients.stream()
                 .flatMap(i -> i.getAllergens().stream())
                 .distinct()
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
 }
