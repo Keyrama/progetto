@@ -5,23 +5,24 @@ import it.unifi.swam.cleanlabel.model.Product;
 import org.mapstruct.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring",
         uses = {
                 NutritionalValueMapper.class,
                 IngredientMapper.class,
-                AllergenMapper.class,
-                ProductClaimMapper.class
+                AllergenMapper.class
         })
 public interface ProductMapper {
 
     /**
-     * Full mapping for GET responses.
+     * Full mapping for GET /products/{id} responses.
      * - categoryId and categoryName are sourced from product.category
      * - declaredAllergens comes from the @Transient helper on Product
      * - ingredientIds are extracted from the ingredients list
      * - mayContainAllergenIds are extracted from mayContainAllergens list
+     *
+     * Claims are NOT mapped here — they are retrieved separately via
+     * GET /api/products/{id}/claims and live outside the product lifecycle.
      */
     @Mapping(target = "categoryId",   source = "category.id")
     @Mapping(target = "categoryName", source = "category.name")
@@ -33,19 +34,18 @@ public interface ProductMapper {
     List<ProductDTO> toDTOList(List<Product> products);
 
     /**
-     * Minimal mapping for list views (no claims, no ingredients detail).
+     * Minimal mapping for list views (no ingredients detail).
      * Useful for search results and alternatives — avoids N+1 queries.
      */
     @Named("toSummaryDTO")
-    @Mapping(target = "categoryId",          source = "category.id")
-    @Mapping(target = "categoryName",        source = "category.name")
-    @Mapping(target = "declaredAllergens",   ignore = true)
-    @Mapping(target = "ingredients",         ignore = true)
-    @Mapping(target = "ingredientIds",       ignore = true)
-    @Mapping(target = "mayContainAllergens", ignore = true)
+    @Mapping(target = "categoryId",            source = "category.id")
+    @Mapping(target = "categoryName",          source = "category.name")
+    @Mapping(target = "declaredAllergens",     ignore = true)
+    @Mapping(target = "ingredients",           ignore = true)
+    @Mapping(target = "ingredientIds",         ignore = true)
+    @Mapping(target = "mayContainAllergens",   ignore = true)
     @Mapping(target = "mayContainAllergenIds", ignore = true)
-    @Mapping(target = "claims",              ignore = true)
-    @Mapping(target = "nutritionalValue",    ignore = true)
+    @Mapping(target = "nutritionalValue",      ignore = true)
     ProductDTO toSummaryDTO(Product product);
 
     @IterableMapping(qualifiedByName = "toSummaryDTO")
@@ -58,11 +58,10 @@ public interface ProductMapper {
      * Computed fields (healthScore, cleanLabel) are also ignored.
      */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "category",              ignore = true)
-    @Mapping(target = "ingredients",           ignore = true)
-    @Mapping(target = "mayContainAllergens",   ignore = true)
-    @Mapping(target = "claims",                ignore = true)
-    @Mapping(target = "healthScore",           ignore = true)
-    @Mapping(target = "cleanLabel",            ignore = true)
+    @Mapping(target = "category",            ignore = true)
+    @Mapping(target = "ingredients",         ignore = true)
+    @Mapping(target = "mayContainAllergens", ignore = true)
+    @Mapping(target = "healthScore",         ignore = true)
+    @Mapping(target = "cleanLabel",          ignore = true)
     void updateEntityFromDTO(ProductDTO dto, @MappingTarget Product product);
 }

@@ -8,7 +8,9 @@ import it.unifi.swam.cleanlabel.repository.AllergenRepository;
 import it.unifi.swam.cleanlabel.repository.IngredientRepository;
 import it.unifi.swam.cleanlabel.repository.ProductCategoryRepository;
 import it.unifi.swam.cleanlabel.repository.ProductRepository;
+import it.unifi.swam.cleanlabel.repository.spec.ProductSpecifications;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,31 +32,31 @@ public class ProductService {
     // ── Queries ───────────────────────────────────────────────────────────────
 
     /**
-     * Returns products filtered by optional search, category, and cleanLabel params.
-     * Uses summary DTO (no claims/ingredients detail) to avoid N+1 queries on lists.
+     * Returns products filtered by any combination of search, category, and
+     * cleanLabel. All active filters are applied simultaneously via JPA
+     * Specifications — unlike a simple if-else chain, multiple filters
+     * compose correctly (e.g. search + cleanLabel works as expected).
      */
     public List<ProductDTO> findAll(String search, Long categoryId, Boolean cleanLabel) {
-        List<Product> products;
+        Specification<Product> spec = Specification.where(null);
 
         if (search != null && !search.isBlank()) {
-            products = productRepository.searchByNameOrBrand(search.trim());
-        } else if (categoryId != null) {
-            ProductCategory category = categoryRepository.findById(categoryId)
-                    .orElseThrow(() -> new ResourceNotFoundException("ProductCategory", categoryId));
-            products = productRepository.findByCategory(category);
-        } else if (Boolean.TRUE.equals(cleanLabel)) {
-            products = productRepository.findByCleanLabelTrue();
-        } else {
-            products = productRepository.findAll();
+            spec = spec.and(ProductSpecifications.nameOrBrandContains(search.trim()));
         }
 
-        return productMapper.toSummaryDTOList(products);
+        if (categoryId != null) {
+            ProductCategory category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new ResourceNotFoundException("ProductCategory", categoryId));
+            spec = spec.and(ProductSpecifications.inCategory(category));
+        }
+
+        if (Boolean.TRUE.equals(cleanLabel)) {
+            spec = spec.and(ProductSpecifications.cleanLabelOnly());
+        }
+
+        return productMapper.toSummaryDTOList(productRepository.findAll(spec));
     }
 
-    /**
-     * Returns the full product detail including ingredients, allergens,
-     * nutritional values, and persisted claim analysis results.
-     */
     public ProductDTO findById(Long id) {
         return productMapper.toDTO(getProductOrThrow(id));
     }
@@ -65,12 +67,8 @@ public class ProductService {
     public ProductDTO create(ProductDTO dto) {
         Product product = new Product();
         productMapper.updateEntityFromDTO(dto, product);
-
         resolveAndSetRelationships(product, dto);
-
-        // Health score and cleanLabel are always computed — never taken from input
         healthScoreService.computeAndApply(product);
-
         return productMapper.toDTO(productRepository.save(product));
     }
 
@@ -78,10 +76,8 @@ public class ProductService {
     public ProductDTO update(Long id, ProductDTO dto) {
         Product product = getProductOrThrow(id);
         productMapper.updateEntityFromDTO(dto, product);
-
         resolveAndSetRelationships(product, dto);
         healthScoreService.computeAndApply(product);
-
         return productMapper.toDTO(productRepository.save(product));
     }
 
@@ -93,12 +89,7 @@ public class ProductService {
 
     // ── Internal helpers ──────────────────────────────────────────────────────
 
-    /**
-     * Resolves all relationship fields from IDs in the DTO to managed entities.
-     * Done in the service because each lookup requires a database call.
-     */
     private void resolveAndSetRelationships(Product product, ProductDTO dto) {
-        // Category
         if (dto.getCategoryId() != null) {
             ProductCategory category = categoryRepository.findById(dto.getCategoryId())
                     .orElseThrow(() -> new ResourceNotFoundException(
@@ -106,30 +97,26 @@ public class ProductService {
             product.setCategory(category);
         }
 
-        // Ingredients — replace entire list on each update
         if (dto.getIngredientIds() != null) {
             List<Ingredient> ingredients =
                     ingredientRepository.findAllById(dto.getIngredientIds());
             if (ingredients.size() != dto.getIngredientIds().size()) {
-                throw new ResourceNotFoundException(
-                        "One or more ingredient IDs not found");
+                throw new ResourceNotFoundException("One or more ingredient IDs not found");
             }
             product.setIngredients(new ArrayList<>(ingredients));
         }
 
-        // "May contain allergens" (cross-contamination traces)
         if (dto.getMayContainAllergenIds() != null) {
             List<Allergen> allergens =
                     allergenRepository.findAllById(dto.getMayContainAllergenIds());
             if (allergens.size() != dto.getMayContainAllergenIds().size()) {
-                throw new ResourceNotFoundException(
-                        "One or more allergen IDs not found");
+                throw new ResourceNotFoundException("One or more allergen IDs not found");
             }
             product.setMayContainAllergens(new ArrayList<>(allergens));
         }
     }
 
-    public Product getProductOrThrow(Long id) {
+    private Product getProductOrThrow(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", id));
     }

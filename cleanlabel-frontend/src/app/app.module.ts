@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -38,6 +38,9 @@ import { AdminIngredientsComponent } from './components/admin-ingredients/admin-
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
+  ],
+  providers: [
+    DatePipe,  // required for injection in ProductDetailComponent
   ],
   bootstrap: [AppComponent]
 })

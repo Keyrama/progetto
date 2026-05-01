@@ -50,7 +50,7 @@ public class AllergenService {
 
     // ── Internal helper ───────────────────────────────────────────────────────
 
-    public Allergen getAllergenOrThrow(Long id) {
+    private Allergen getAllergenOrThrow(Long id) {
         return allergenRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Allergen", id));
     }

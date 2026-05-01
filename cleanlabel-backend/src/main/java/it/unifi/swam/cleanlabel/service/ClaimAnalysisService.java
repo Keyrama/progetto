@@ -34,7 +34,8 @@ import java.util.stream.Collectors;
  *   UNVERIFIABLE / INCOMPLETE_DATA) is stored in the embedded ValidationResult.
  *
  * Results are persisted as ProductClaim entities and replace any previous
- * analysis for the same product.
+ * analysis for the same product. Claims are NOT navigated through Product —
+ * they are managed entirely through ProductClaimRepository.
  */
 @Service
 @Transactional(readOnly = true)
@@ -74,7 +75,9 @@ public class ClaimAnalysisService {
 
     /**
      * Analyzes a list of raw claim strings for a product.
-     * Clears any previous analysis results before persisting the new ones.
+     * Duplicates in the input are silently removed to avoid unique constraint
+     * violations on (product_id, claim_definition_id).
+     * Any previous analysis for the same product is replaced entirely.
      *
      * @param productId ID of the product whose label claims are being analyzed
      * @param rawClaims list of claim strings exactly as they appear on the label
@@ -85,15 +88,24 @@ public class ClaimAnalysisService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", productId));
 
-        // Remove previous analysis — analysis is always a full replacement
-        product.getClaims().clear();
+        // Remove previous analysis — analysis is always a full replacement.
+        // Done via repository, not through product.getClaims(), since the
+        // OneToMany is intentionally absent from Product.
+        productClaimRepository.deleteByProductId(productId);
 
-        List<ProductClaim> results = rawClaims.stream()
+        // Deduplicate to avoid unique constraint violations on
+        // (product_id, claim_definition_id) when the same term appears twice.
+        List<String> deduplicated = rawClaims.stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .distinct()
+                .toList();
+
+        List<ProductClaim> results = deduplicated.stream()
                 .map(raw -> buildProductClaim(product, raw))
-                .collect(Collectors.toList());
+                .toList();
 
-        product.getClaims().addAll(results);
-        productRepository.save(product);
+        productClaimRepository.saveAll(results);
 
         return productClaimMapper.toDTOList(results);
     }
@@ -127,7 +139,7 @@ public class ClaimAnalysisService {
         pc.setAnalyzedAt(LocalDateTime.now());
 
         Optional<ClaimDefinition> definition =
-                claimDefinitionRepository.findByTermIgnoreCase(rawLabel.trim());
+                claimDefinitionRepository.findByTermIgnoreCase(rawLabel);
 
         definition.ifPresentOrElse(
                 def -> {

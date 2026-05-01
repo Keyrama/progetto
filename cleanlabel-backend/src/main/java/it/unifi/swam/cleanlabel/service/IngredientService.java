@@ -7,7 +7,9 @@ import it.unifi.swam.cleanlabel.model.Allergen;
 import it.unifi.swam.cleanlabel.model.Ingredient;
 import it.unifi.swam.cleanlabel.repository.AllergenRepository;
 import it.unifi.swam.cleanlabel.repository.IngredientRepository;
+import it.unifi.swam.cleanlabel.repository.spec.IngredientSpecifications;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,19 +25,22 @@ public class IngredientService {
     private final AllergenRepository allergenRepository;
     private final IngredientMapper ingredientMapper;
 
+    /**
+     * Returns ingredients filtered by any combination of artificial and riskLevel.
+     * Filters compose correctly via JPA Specifications.
+     */
     public List<IngredientDTO> findAll(Boolean artificial, String riskLevel) {
-        List<Ingredient> results;
+        Specification<Ingredient> spec = Specification.where(null);
 
         if (Boolean.TRUE.equals(artificial)) {
-            results = ingredientRepository.findByArtificialTrue();
-        } else if (riskLevel != null) {
-            Ingredient.RiskLevel level = parseRiskLevel(riskLevel);
-            results = ingredientRepository.findByRiskLevel(level);
-        } else {
-            results = ingredientRepository.findAll();
+            spec = spec.and(IngredientSpecifications.isArtificial());
         }
 
-        return ingredientMapper.toDTOList(results);
+        if (riskLevel != null) {
+            spec = spec.and(IngredientSpecifications.hasRiskLevel(parseRiskLevel(riskLevel)));
+        }
+
+        return ingredientMapper.toDTOList(ingredientRepository.findAll(spec));
     }
 
     public IngredientDTO findById(Long id) {
@@ -65,12 +70,6 @@ public class IngredientService {
 
     // ── Internal helpers ──────────────────────────────────────────────────────
 
-    /**
-     * Resolves allergen IDs from the DTO into managed Allergen entities
-     * and sets them on the ingredient.
-     * This is intentionally done in the service rather than the mapper
-     * because it requires a database lookup.
-     */
     private void resolveAndSetAllergens(Ingredient ingredient, IngredientDTO dto) {
         if (dto.getAllergens() == null || dto.getAllergens().isEmpty()) {
             ingredient.setAllergens(new ArrayList<>());
@@ -99,7 +98,7 @@ public class IngredientService {
         }
     }
 
-    public Ingredient getIngredientOrThrow(Long id) {
+    private Ingredient getIngredientOrThrow(Long id) {
         return ingredientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ingredient", id));
     }

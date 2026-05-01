@@ -48,7 +48,7 @@ public class ProductCategoryService {
 
     // ── Internal helper ───────────────────────────────────────────────────────
 
-    public ProductCategory getCategoryOrThrow(Long id) {
+    private ProductCategory getCategoryOrThrow(Long id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ProductCategory", id));
     }

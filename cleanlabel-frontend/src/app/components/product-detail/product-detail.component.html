@@ -1,4 +1,4 @@
-<div class="container py-4" *ngIf="!loading && product">
+<div class="container py-4" *ngIf="!loading && product; else loadingTpl">
 
   <!-- Back -->
   <a class="btn btn-sm btn-outline-secondary mb-3" (click)="router.navigate(['/products'])">
@@ -141,7 +141,8 @@
               <button class="btn btn-primary"
                       (click)="analyzeClaims()"
                       [disabled]="analyzingClaims || !claimInput.trim()">
-                <i class="bi bi-play-fill me-1"></i>Analizza
+                <span *ngIf="analyzingClaims" class="spinner-border spinner-border-sm me-1"></span>
+                <i *ngIf="!analyzingClaims" class="bi bi-play-fill me-1"></i>Analizza
               </button>
             </div>
             <div *ngIf="claimError" class="alert alert-danger py-1 small">
@@ -154,8 +155,12 @@
             L'analisi dei claim richiede il ruolo Specialista o Corporate.
           </div>
 
-          <div *ngIf="product.claims?.length; else noClaims">
-            <div class="border rounded p-2 mb-2" *ngFor="let c of product.claims">
+          <!-- Claims — bound to component-level `claims`, never to product.claims -->
+          <div *ngIf="claims.length; else noClaims">
+            <p *ngIf="lastAnalyzedAt" class="text-muted small mb-2">
+              <i class="bi bi-clock me-1"></i>Analisi del {{ lastAnalyzedAt }}
+            </p>
+            <div class="border rounded p-2 mb-2" *ngFor="let c of claims">
               <div class="d-flex justify-content-between align-items-start">
                 <div>
                   <strong>{{ c.rawLabel }}</strong>
@@ -199,6 +204,10 @@
   <app-product-alternatives [productId]="product.id!"></app-product-alternatives>
 </div>
 
-<div class="container py-5 text-center" *ngIf="loading">
-  <div class="spinner-border text-success"></div>
-</div>
+<!-- Loading and empty state — unified to ensure product content
+     is fully destroyed from the DOM while the next product loads -->
+<ng-template #loadingTpl>
+  <div class="container py-5 text-center" *ngIf="loading">
+    <div class="spinner-border text-success"></div>
+  </div>
+</ng-template>

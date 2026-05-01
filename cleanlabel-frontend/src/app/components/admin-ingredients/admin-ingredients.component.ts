@@ -19,12 +19,14 @@ export class AdminIngredientsComponent implements OnInit {
 
   selectedAllergenIds = new Set<number>();
 
+  // Delete confirmation modal state
+  ingredientToDelete: IngredientDTO | null = null;
+
   readonly riskLevels: RiskLevel[] = ['LOW', 'MEDIUM', 'HIGH'];
 
   toastMsg = '';
   toastError = false;
 
-  // Filter
   filterText = '';
 
   constructor(private fb: FormBuilder, private productService: ProductService) {}
@@ -72,11 +74,11 @@ export class AdminIngredientsComponent implements OnInit {
 
   private buildForm(ing: IngredientDTO | null): FormGroup {
     return this.fb.group({
-      name:        [ing?.name        ?? '', Validators.required],
-      additiveCode:     [ing?.additiveCode     ?? ''],
-      description: [ing?.description ?? ''],
-      artificial:  [ing?.artificial  ?? false],
-      riskLevel:   [ing?.riskLevel   ?? 'LOW', Validators.required],
+      name:         [ing?.name        ?? '', Validators.required],
+      additiveCode: [ing?.additiveCode ?? ''],
+      description:  [ing?.description ?? ''],
+      artificial:   [ing?.artificial  ?? false],
+      riskLevel:    [ing?.riskLevel   ?? 'LOW', Validators.required],
     });
   }
 
@@ -119,11 +121,28 @@ export class AdminIngredientsComponent implements OnInit {
     });
   }
 
-  deleteIngredient(ing: IngredientDTO) {
-    if (!confirm(`Eliminare l'ingrediente "${ing.name}"?`)) return;
-    this.productService.deleteIngredient(ing.id!).subscribe({
-      next: () => { this.load(); this.showToast('Ingrediente eliminato.'); },
-      error: () => this.showToast('Errore durante l\'eliminazione.', true),
+  // ── Delete with modal confirmation ────────────────────────────────────────
+
+  confirmDelete(ing: IngredientDTO) {
+    this.ingredientToDelete = ing;
+  }
+
+  cancelDelete() {
+    this.ingredientToDelete = null;
+  }
+
+  doDelete() {
+    if (!this.ingredientToDelete?.id) return;
+    this.productService.deleteIngredient(this.ingredientToDelete.id).subscribe({
+      next: () => {
+        this.ingredientToDelete = null;
+        this.load();
+        this.showToast('Ingrediente eliminato.');
+      },
+      error: () => {
+        this.ingredientToDelete = null;
+        this.showToast('Errore durante l\'eliminazione.', true);
+      },
     });
   }
 

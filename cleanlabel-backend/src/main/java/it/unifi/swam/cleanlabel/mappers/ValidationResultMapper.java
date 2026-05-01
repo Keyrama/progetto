@@ -7,5 +7,4 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface ValidationResultMapper {
     ValidationResultDTO toDTO(ValidationResult validationResult);
-    ValidationResult toEntity(ValidationResultDTO dto);
 }
