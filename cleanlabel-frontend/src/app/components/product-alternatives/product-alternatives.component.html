@@ -4,19 +4,30 @@
   </div>
   <div class="row g-3 p-3">
     <div class="col-md-4" *ngFor="let alt of alternatives">
-      <div class="card h-100 border-success cursor-pointer" (click)="goToProduct(alt.productId)"
-           style="cursor:pointer">
-        <div class="card-body">
+      <div class="card h-100 border-success alt-card">
+        <div class="card-body" (click)="goToProduct(alt.productId)">
           <h6 class="card-title mb-0">{{ alt.productName }}</h6>
           <small class="text-muted">{{ alt.brand }}</small>
           <div class="d-flex align-items-center gap-2 mt-2">
-            <span class="fw-bold" [ngClass]="scoreClass(alt.healthScore)">{{ alt.healthScore }}</span>
+            <span class="badge rounded-pill"
+                  [ngClass]="{
+                    'bg-success': alt.healthScore >= 70,
+                    'bg-warning text-dark': alt.healthScore >= 40 && alt.healthScore < 70,
+                    'bg-danger': alt.healthScore < 40
+                  }">
+              {{ alt.healthScore }}
+            </span>
             <span class="badge bg-success">+{{ alt.scoreDelta }} pt</span>
             <span *ngIf="alt.cleanLabel" class="badge bg-success">
               <i class="bi bi-patch-check"></i>
             </span>
           </div>
           <p class="small text-muted mt-2 mb-0">{{ alt.reason }}</p>
+          <div class="text-end mt-2">
+            <small class="text-success fw-semibold">
+              Vedi prodotto <i class="bi bi-arrow-right"></i>
+            </small>
+          </div>
         </div>
       </div>
     </div>

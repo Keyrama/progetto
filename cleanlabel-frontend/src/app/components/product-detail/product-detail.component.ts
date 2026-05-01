@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ProductDTO, ProductClaimDTO, Verdict } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import { AuthService } from '../../services/auth.service';
@@ -8,14 +10,15 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-product-detail',
   templateUrl: './product-detail.component.html',
 })
-export class ProductDetailComponent implements OnInit {
+export class ProductDetailComponent implements OnInit, OnDestroy {
   product: ProductDTO | null = null;
   loading = true;
 
-  // Claim analysis
   claimInput = '';
   analyzingClaims = false;
   claimError = '';
+
+  private routeSub!: Subscription;
 
   constructor(
     private route: ActivatedRoute,
@@ -25,20 +28,32 @@ export class ProductDetailComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.productService.getProduct(id).subscribe(p => {
+    // Usa paramMap observable invece di snapshot
+    // così reagisce ai cambi di ID senza ricaricare il componente
+    this.routeSub = this.route.paramMap.pipe(
+      switchMap(params => {
+        const id = Number(params.get('id'));
+        this.loading = true;
+        this.product = null;
+        this.claimInput = '';
+        this.claimError = '';
+        return this.productService.getProduct(id);
+      })
+    ).subscribe(p => {
       this.product = p;
       this.loading = false;
     });
   }
 
-  // ── Score helpers ────────────────────────────────────────────────────────
+  ngOnDestroy() {
+    this.routeSub?.unsubscribe();
+  }
 
   scoreClass(score: number | undefined): string {
-    if (score == null) return '';
-    if (score >= 70) return 'score-high';
-    if (score >= 40) return 'score-medium';
-    return 'score-low';
+    if (score == null) return 'text-muted';
+    if (score >= 70) return 'text-success';
+    if (score >= 40) return 'text-warning';
+    return 'text-danger';
   }
 
   scoreLabel(score: number | undefined): string {
@@ -54,9 +69,6 @@ export class ProductDetailComponent implements OnInit {
     return 'bg-danger';
   }
 
-  // ── Claim analysis ────────────────────────────────────────────────────────
-
-  /** True if the current user can trigger claim analysis */
   get canAnalyze(): boolean {
     return this.auth.hasRole('SPECIALIST', 'CORPORATE');
   }
@@ -80,34 +92,32 @@ export class ProductDetailComponent implements OnInit {
     });
   }
 
-  // ── Claim display helpers ─────────────────────────────────────────────────
-
   verdictClass(verdict: Verdict): string {
     const map: Record<Verdict, string> = {
-      CONFIRMED:      'text-success',
-      CONTRADICTED:   'text-danger',
-      UNVERIFIABLE:   'text-secondary',
-      INCOMPLETE_DATA:'text-warning',
+      CONFIRMED:       'text-success',
+      CONTRADICTED:    'text-danger',
+      UNVERIFIABLE:    'text-secondary',
+      INCOMPLETE_DATA: 'text-warning',
     };
     return map[verdict] ?? 'text-secondary';
   }
 
   verdictIcon(verdict: Verdict): string {
     const map: Record<Verdict, string> = {
-      CONFIRMED:      'bi-check-circle-fill',
-      CONTRADICTED:   'bi-x-circle-fill',
-      UNVERIFIABLE:   'bi-question-circle',
-      INCOMPLETE_DATA:'bi-exclamation-triangle',
+      CONFIRMED:       'bi-check-circle-fill',
+      CONTRADICTED:    'bi-x-circle-fill',
+      UNVERIFIABLE:    'bi-question-circle',
+      INCOMPLETE_DATA: 'bi-exclamation-triangle',
     };
     return map[verdict] ?? 'bi-question-circle';
   }
 
   verdictLabel(verdict: Verdict): string {
     const map: Record<Verdict, string> = {
-      CONFIRMED:      'Confermato',
-      CONTRADICTED:   'Contraddetto',
-      UNVERIFIABLE:   'Non verificabile',
-      INCOMPLETE_DATA:'Dati incompleti',
+      CONFIRMED:       'Confermato',
+      CONTRADICTED:    'Contraddetto',
+      UNVERIFIABLE:    'Non verificabile',
+      INCOMPLETE_DATA: 'Dati incompleti',
     };
     return map[verdict] ?? verdict;
   }

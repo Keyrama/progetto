@@ -11,10 +11,10 @@ export class ProductCardComponent {
 
   get scoreClass(): string {
     const s = this.product.healthScore;
-    if (s == null) return 'score-unknown';
-    if (s >= 70) return 'score-high';
-    if (s >= 40) return 'score-medium';
-    return 'score-low';
+    if (s == null) return 'bg-secondary';
+    if (s >= 70) return 'bg-success';
+    if (s >= 40) return 'bg-warning';
+    return 'bg-danger';
   }
 
   onClick() {

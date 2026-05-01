@@ -23,6 +23,20 @@ INSERT INTO allergens (name, code, description) VALUES
                                                     ('Molluscs',            'MOLLUSCS',  'Clams, mussels, oysters, scallops, squid and related products.')
     ON CONFLICT (code) DO NOTHING;
 
+-- ── Product Definitions Library ──────────────────────────────────────────────
+
+INSERT INTO product_categories (name, description) VALUES
+    ('Cereali e colazione',       'Cereali, muesli, granola e prodotti per la colazione'),
+    ('Snack e patatine',          'Patatine, cracker, popcorn e snack salati'),
+    ('Bevande',                   'Succhi, bibite, energy drink e acque aromatizzate'),
+    ('Latticini',                 'Yogurt, formaggi, latte e derivati'),
+    ('Dolci e biscotti',          'Biscotti, merendine, cioccolato e dolciumi'),
+    ('Salumi e affettati',        'Prosciutto, salame, bresaola e insaccati'),
+    ('Condimenti e salse',        'Ketchup, maionese, pesto e condimenti vari'),
+    ('Pane e prodotti da forno',  'Pane, grissini, crackers e prodotti da forno')
+    ON CONFLICT (name) DO NOTHING;
+
+    
 -- ── Claim Definitions Library ─────────────────────────────────────────────────
 -- Sources: EU Reg. 1924/2006, EFSA guidelines, consumer protection literature.
 -- validation_threshold unit: g per 100g product.
