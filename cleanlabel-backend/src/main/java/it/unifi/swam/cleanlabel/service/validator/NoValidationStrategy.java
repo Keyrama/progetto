@@ -17,8 +17,8 @@ public class NoValidationStrategy implements ClaimValidatorStrategy {
     public ValidationResult validate(Product product, ClaimDefinition claim) {
         return new ValidationResult(
                 ValidationResult.Verdict.UNVERIFIABLE,
-                "This is a subjective or marketing claim with no legal definition. " +
-                "Automatic validation is not applicable. A specialist review is recommended."
+                "Questa è una dichiarazione soggettiva o di marketing senza definizione legale. " +
+                "La validazione automatica non è applicabile. È consigliata una revisione da parte di uno specialista."
         );
     }
 }

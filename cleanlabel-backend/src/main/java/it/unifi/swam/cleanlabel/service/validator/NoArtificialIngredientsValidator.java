@@ -30,7 +30,7 @@ public class NoArtificialIngredientsValidator implements ClaimValidatorStrategy 
         if (artificial.isEmpty()) {
             return new ValidationResult(
                     ValidationResult.Verdict.CONFIRMED,
-                    "No artificial ingredients detected in the ingredient list."
+                    "Nessun ingrediente artificiale rilevato nella lista degli ingredienti."
             );
         }
 
@@ -42,7 +42,7 @@ public class NoArtificialIngredientsValidator implements ClaimValidatorStrategy 
 
         return new ValidationResult(
                 ValidationResult.Verdict.CONTRADICTED,
-                "The product contains artificial ingredients: " + names + "."
+                "Il prodotto contiene ingredienti artificiali: " + names + "."
         );
     }
 }

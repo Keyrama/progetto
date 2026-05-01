@@ -30,7 +30,7 @@ public class NoHighRiskIngredientsValidator implements ClaimValidatorStrategy {
         if (highRisk.isEmpty()) {
             return new ValidationResult(
                     ValidationResult.Verdict.CONFIRMED,
-                    "No HIGH-risk ingredients detected in the ingredient list."
+                    "Nessun ingrediente ad alto rischio rilevato nella lista degli ingredienti."
             );
         }
 
@@ -42,7 +42,7 @@ public class NoHighRiskIngredientsValidator implements ClaimValidatorStrategy {
 
         return new ValidationResult(
                 ValidationResult.Verdict.CONTRADICTED,
-                "The product contains HIGH-risk ingredients: " + names + "."
+                "Il prodotto contiene ingredienti ad alto rischio: " + names + "."
         );
     }
 }

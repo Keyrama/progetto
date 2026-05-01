@@ -144,7 +144,7 @@ public class ClaimAnalysisService {
                     pc.setStatus(ProductClaim.AnalysisStatus.UNMATCHED);
                     pc.setValidationResult(new ValidationResult(
                             ValidationResult.Verdict.UNVERIFIABLE,
-                            "Claim not found in the library. Manual specialist review required."
+                            "Claim non trovato nella libreria. Richiede revisione manuale da parte di uno specialista."
                     ));
                 }
         );
