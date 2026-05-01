@@ -22,12 +22,14 @@ C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\j
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\model\ProductCategory.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\service\AlternativeSuggestionService.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\dtos\ValidationResultDTO.java
+C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\repository\spec\ClaimDefinitionSpecifications.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\dtos\NutritionalValueDTO.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\service\AllergenService.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\service\validator\ClaimValidatorStrategy.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\service\ClaimAnalysisService.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\exception\ResourceNotFoundException.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\model\Product.java
+C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\repository\spec\ProductSpecifications.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\dtos\UserDTO.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\mappers\ProductMapper.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\repository\ProductRepository.java
@@ -53,10 +55,11 @@ C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\j
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\service\validator\HighFiberValidator.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\service\IngredientService.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\model\ClaimDefinition.java
+C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\repository\spec\IngredientSpecifications.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\controller\IngredientController.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\exception\GlobalExceptionHandler.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\dtos\AllergenDTO.java
-C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\model\AlternativeSuggestion.java
+C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\service\validator\NoValidationStrategy.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\dtos\ProductDTO.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\service\ProductService.java
 C:\Users\irene\Desktop\Uni_magistrale\SAM\progetto\cleanlabel-backend\src\main\java\it\unifi\swam\cleanlabel\service\ClaimDefinitionService.java
