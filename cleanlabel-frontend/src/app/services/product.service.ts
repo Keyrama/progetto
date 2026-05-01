@@ -5,7 +5,8 @@ import { catchError } from 'rxjs/operators';
 import {
   ProductDTO, ProductCategoryDTO, IngredientDTO,
   AllergenDTO, AlternativeSuggestionDTO,
-  ProductClaimDTO, ClaimAnalysisRequestDTO, ProductFilter
+  ProductClaimDTO, ClaimAnalysisRequestDTO, ProductFilter,
+  PageResponse, ProductPageFilter
 } from '../models/product.model';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
@@ -17,13 +18,16 @@ export class ProductService {
   constructor(private http: HttpClient, private auth: AuthService) {}
 
 
-  getProducts(filter: ProductFilter = {}): Observable<ProductDTO[]> {
+  getProducts(filter: ProductPageFilter = {}): Observable<PageResponse<ProductDTO>> {
     let params = new HttpParams();
     if (filter.search)     params = params.set('search', filter.search);
     if (filter.category)   params = params.set('category', filter.category.toString());
     if (filter.cleanLabel) params = params.set('cleanLabel', 'true');
-    return this.http.get<ProductDTO[]>(`${this.api}/products`, { params })
-      .pipe(catchError(() => of([])));
+    params = params.set('page', (filter.page ?? 0).toString());
+    params = params.set('size', (filter.size ?? 20).toString());
+    params = params.set('sort', filter.sort ?? 'name,asc');
+    return this.http.get<PageResponse<ProductDTO>>(`${this.api}/products`, { params })
+      .pipe(catchError(() => of({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 })));
   }
 
   getProduct(id: number): Observable<ProductDTO> {
