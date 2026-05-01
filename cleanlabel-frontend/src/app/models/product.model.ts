@@ -133,20 +133,3 @@ export interface ProductFilter {
 export interface ClaimAnalysisRequestDTO {
   rawClaims: string[];
 }
-
-// ── Pagination ────────────────────────────────────────────────────────────────
-
-/** Mirrors Spring's Page<T> response envelope */
-export interface PageResponse<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  number: number;   // current page (0-based)
-  size: number;
-}
-
-export interface ProductPageFilter extends ProductFilter {
-  page?: number;
-  size?: number;
-  sort?: string;
-}

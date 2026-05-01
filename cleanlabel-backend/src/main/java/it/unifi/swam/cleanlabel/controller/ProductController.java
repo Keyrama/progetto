@@ -12,10 +12,6 @@ import it.unifi.swam.cleanlabel.service.ProductService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -35,11 +31,6 @@ import java.util.List;
  *   POST .../claims/analyze         — SPECIALIST, CORPORATE
  *   GET  .../claims                 — open (all roles)
  *   GET  .../alternatives           — open (all roles)
- *
- * Pagination:
- *   GET /api/products?page=0&size=20&sort=name,asc
- *   Response body is a Spring Page<ProductDTO> with metadata:
- *     { content: [...], totalElements, totalPages, number, size }
  */
 @RestController
 @RequestMapping("/api/products")
@@ -53,32 +44,13 @@ public class ProductController {
 
     // ── Open endpoints (all roles) ─────────────────────────────────────────────
 
-    /**
-     * @param page  0-based page index (default 0)
-     * @param size  page size (default 20, max 100)
-     * @param sort  field and direction, e.g. "name,asc" or "healthScore,desc" (default "name,asc")
-     */
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> getAll(
+    public ResponseEntity<List<ProductDTO>> getAll(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Long category,
-            @RequestParam(required = false) Boolean cleanLabel,
-            @RequestParam(defaultValue = "0")  int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "name,asc") String sort) {
+            @RequestParam(required = false) Boolean cleanLabel) {
 
-        // Cap page size to avoid abusive requests
-        int cappedSize = Math.min(size, 100);
-
-        String[] sortParts = sort.split(",");
-        String sortField = sortParts[0].trim();
-        Sort.Direction direction = (sortParts.length > 1 && sortParts[1].trim().equalsIgnoreCase("desc"))
-                ? Sort.Direction.DESC
-                : Sort.Direction.ASC;
-
-        Pageable pageable = PageRequest.of(page, cappedSize, Sort.by(direction, sortField));
-
-        return ResponseEntity.ok(productService.findAll(search, category, cleanLabel, pageable));
+        return ResponseEntity.ok(productService.findAll(search, category, cleanLabel));
     }
 
     @GetMapping("/{id}")

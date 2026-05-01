@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
-import { ProductDTO, ProductFilter, ProductPageFilter } from '../../models/product.model';
+import { ProductDTO, ProductFilter } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 
 @Component({
@@ -10,18 +10,21 @@ import { ProductService } from '../../services/product.service';
   templateUrl: './product-list.component.html',
 })
 export class ProductListComponent implements OnInit, OnDestroy {
+  // All products returned by the backend
+  allProducts: ProductDTO[] = [];
+  // Slice shown in the current page
   products: ProductDTO[] = [];
+
+  filter: ProductFilter = {};
   loading = false;
 
-  // Server-side pagination state
+  // Client-side pagination (backend returns a flat list)
   currentPage = 0;
   pageSize = 12;
   totalElements = 0;
   totalPages = 0;
 
-  filter: ProductFilter = {};
-
-  private filter$ = new Subject<ProductPageFilter>();
+  private filter$ = new Subject<ProductFilter>();
   private destroy$ = new Subject<void>();
 
   constructor(private productService: ProductService, private router: Router) {}
@@ -30,40 +33,36 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.filter$.pipe(
       debounceTime(300),
       distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
-      switchMap(f => {
-        this.loading = true;
-        return this.productService.getProducts(f);
-      }),
+      switchMap(f => { this.loading = true; return this.productService.getProducts(f); }),
       takeUntil(this.destroy$)
-    ).subscribe(page => {
-      this.products     = page.content;
-      this.totalElements = page.totalElements;
-      this.totalPages   = page.totalPages;
-      this.currentPage  = page.number;
+    ).subscribe(products => {
+      this.allProducts = products;
+      this.totalElements = products.length;
+      this.totalPages = Math.ceil(products.length / this.pageSize);
+      this.currentPage = 0;
+      this.applyPage();
       this.loading = false;
     });
 
-    this.emitFilter();
+    this.filter$.next(this.filter);
   }
 
   ngOnDestroy() { this.destroy$.next(); this.destroy$.complete(); }
 
   onFilterChange(f: ProductFilter) {
     this.filter = { ...f };
-    this.currentPage = 0;   // reset to first page on new filter
-    this.emitFilter();
+    this.filter$.next(this.filter);
   }
 
   onResetFilter() {
     this.filter = {};
-    this.currentPage = 0;
-    this.emitFilter();
+    this.filter$.next(this.filter);
   }
 
   goToPage(p: number) {
     if (p < 0 || p >= this.totalPages) return;
     this.currentPage = p;
-    this.emitFilter();
+    this.applyPage();
   }
 
   onProductSelected(id: number) { this.router.navigate(['/products', id]); }
@@ -81,12 +80,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
     return 'score-low';
   }
 
-  private emitFilter() {
-    this.filter$.next({
-      ...this.filter,
-      page: this.currentPage,
-      size: this.pageSize,
-      sort: 'name,asc',
-    });
+  private applyPage() {
+    const start = this.currentPage * this.pageSize;
+    this.products = this.allProducts.slice(start, start + this.pageSize);
   }
 }

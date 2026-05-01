@@ -10,9 +10,6 @@ import it.unifi.swam.cleanlabel.repository.ProductCategoryRepository;
 import it.unifi.swam.cleanlabel.repository.ProductRepository;
 import it.unifi.swam.cleanlabel.repository.spec.ProductSpecifications;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,16 +32,12 @@ public class ProductService {
     // ── Queries ───────────────────────────────────────────────────────────────
 
     /**
-     * Returns a paginated list of products filtered by any combination of
-     * search, category, and cleanLabel. Filters are composed via JPA
-     * Specifications so that multiple active filters apply simultaneously
-     * (e.g. search + cleanLabel works as expected).
-     *
-     * @param pageable pagination and sorting params (page, size, sort).
-     *                 Defaults in the controller: page=0, size=20, sort=name,asc.
+     * Returns products filtered by any combination of search, category, and
+     * cleanLabel. All active filters are applied simultaneously via JPA
+     * Specifications — unlike a simple if-else chain, multiple filters
+     * compose correctly (e.g. search + cleanLabel works as expected).
      */
-    public Page<ProductDTO> findAll(String search, Long categoryId, Boolean cleanLabel,
-                                    Pageable pageable) {
+    public List<ProductDTO> findAll(String search, Long categoryId, Boolean cleanLabel) {
         Specification<Product> spec = Specification.where(null);
 
         if (search != null && !search.isBlank()) {
@@ -61,9 +54,7 @@ public class ProductService {
             spec = spec.and(ProductSpecifications.cleanLabelOnly());
         }
 
-        Page<Product> page = productRepository.findAll(spec, pageable);
-        List<ProductDTO> dtos = productMapper.toSummaryDTOList(page.getContent());
-        return new PageImpl<>(dtos, pageable, page.getTotalElements());
+        return productMapper.toSummaryDTOList(productRepository.findAll(spec));
     }
 
     public ProductDTO findById(Long id) {
