@@ -33,7 +33,7 @@ public class FatReducedValidator implements ClaimValidatorStrategy {
         if (nv == null || nv.getFats() == null) {
             return new ValidationResult(
                     ValidationResult.Verdict.INCOMPLETE_DATA,
-                    "Fat values are missing: cannot verify the fat claim."
+                    "I valori di grassi sono mancanti: non è possibile verificare la richiesta di grassi."
             );
         }
 
@@ -46,15 +46,15 @@ public class FatReducedValidator implements ClaimValidatorStrategy {
         if (fats <= threshold) {
             return new ValidationResult(
                     ValidationResult.Verdict.CONFIRMED,
-                    String.format("Total fat: %.2fg/100g — within the allowed threshold of %.2fg/100g.",
+                    String.format("Grassi totali: %.2fg/100g — entro la soglia consentita di %.2fg/100g.",
                             fats, threshold)
             );
         }
 
         return new ValidationResult(
                 ValidationResult.Verdict.CONTRADICTED,
-                String.format("Total fat: %.2fg/100g — exceeds the threshold of %.2fg/100g " +
-                        "required by this claim.", fats, threshold)
+                String.format("Grassi totali: %.2fg/100g — supera la soglia di %.2fg/100g " +
+                        "richiesta da questa affermazione.", fats, threshold)
         );
     }
 }

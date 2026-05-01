@@ -31,7 +31,7 @@ public class HighFiberValidator implements ClaimValidatorStrategy {
         if (nv == null || nv.getFiber() == null) {
             return new ValidationResult(
                     ValidationResult.Verdict.INCOMPLETE_DATA,
-                    "Fiber value is not declared: cannot verify the fibre claim."
+                    "I valori di fibre sono mancanti: non è possibile verificare la richiesta di fibre."
             );
         }
 
@@ -44,15 +44,15 @@ public class HighFiberValidator implements ClaimValidatorStrategy {
         if (fiber >= threshold) {
             return new ValidationResult(
                     ValidationResult.Verdict.CONFIRMED,
-                    String.format("Fibre: %.2fg/100g — meets the minimum threshold of %.2fg/100g.",
+                    String.format("Fibre: %.2fg/100g — in linea con la soglia minima di %.2fg/100g richiesta da questa dichiarazione.",
                             fiber, threshold)
             );
         }
 
         return new ValidationResult(
                 ValidationResult.Verdict.CONTRADICTED,
-                String.format("Fibre: %.2fg/100g — below the minimum threshold of %.2fg/100g " +
-                        "required by this claim.", fiber, threshold)
+                String.format("Fibre: %.2fg/100g — sotto la soglia minima di %.2fg/100g " +
+                        "richiesta da questa dichiarazione.", fiber, threshold)
         );
     }
 }

@@ -61,14 +61,14 @@ public class AlternativeSuggestionService {
 
     private String buildReason(Product source, Product target, int delta) {
         if (target.isCleanLabel() && !source.isCleanLabel()) {
-            return "Clean label product with transparent, natural ingredients.";
+            return "Prodotto con etichetta clean e ingredienti naturali trasparenti.";
         }
         if (delta >= 30) {
-            return "Significantly healthier option in the same category (+%d points).".formatted(delta);
+            return "Opzione significativamente più salutare nella stessa categoria (+%d punti).".formatted(delta);
         }
         if (delta >= 15) {
-            return "Noticeably better nutritional profile in the same category (+%d points).".formatted(delta);
+            return "Prodotto con profilo nutrizionale notevolmente migliore nella stessa categoria (+%d punti).".formatted(delta);
         }
-        return "Higher health score in the same category (+%d points).".formatted(delta);
+        return "Prodotto con punteggio salute più alto nella stessa categoria (+%d punti).".formatted(delta);
     }
 }

@@ -29,7 +29,7 @@ public class SugarBelowThresholdValidator implements ClaimValidatorStrategy {
         if (nv == null || nv.getSugars() == null) {
             return new ValidationResult(
                     ValidationResult.Verdict.INCOMPLETE_DATA,
-                    "Nutritional values are missing: cannot verify sugar content."
+                    "I valori nutrizionali sono mancanti: non è possibile verificare il contenuto di zucchero."
             );
         }
 
@@ -42,15 +42,15 @@ public class SugarBelowThresholdValidator implements ClaimValidatorStrategy {
         if (sugars <= threshold) {
             return new ValidationResult(
                     ValidationResult.Verdict.CONFIRMED,
-                    String.format("Sugars: %.2fg/100g — within the allowed threshold of %.2fg/100g.",
+                    String.format("Zuccheri: %.2fg/100g — in linea con la soglia consentita di %.2fg/100g.",
                             sugars, threshold)
             );
         }
 
         return new ValidationResult(
                 ValidationResult.Verdict.CONTRADICTED,
-                String.format("Sugars: %.2fg/100g — exceeds the threshold of %.2fg/100g " +
-                        "required by this claim.", sugars, threshold)
+                String.format("Zuccheri: %.2fg/100g — supera la soglia di %.2fg/100g " +
+                        "richiesta da questa dichiarazione.", sugars, threshold)
         );
     }
 }
