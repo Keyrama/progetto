@@ -10,7 +10,4 @@ public interface NutritionalValueMapper {
     NutritionalValueDTO toDTO(NutritionalValue nv);
 
     NutritionalValue toEntity(NutritionalValueDTO dto);
-
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateEntity(NutritionalValueDTO dto, @MappingTarget NutritionalValue nv);
 }

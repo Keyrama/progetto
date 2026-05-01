@@ -13,20 +13,17 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   private api = environment.apiUrl;
-  useMock = false;
 
   constructor(private http: HttpClient, private auth: AuthService) {}
 
-  // ── Products ──────────────────────────────────────────────────────────────
 
   getProducts(filter: ProductFilter = {}): Observable<ProductDTO[]> {
-    if (this.useMock) return of([]);
     let params = new HttpParams();
     if (filter.search)     params = params.set('search', filter.search);
     if (filter.category)   params = params.set('category', filter.category.toString());
     if (filter.cleanLabel) params = params.set('cleanLabel', 'true');
     return this.http.get<ProductDTO[]>(`${this.api}/products`, { params })
-      .pipe(catchError(() => { this.useMock = true; return of([]); }));
+      .pipe(catchError(() => of([])));
   }
 
   getProduct(id: number): Observable<ProductDTO> {
@@ -51,12 +48,9 @@ export class ProductService {
     });
   }
 
-  // ── Categories ────────────────────────────────────────────────────────────
-
   getCategories(): Observable<ProductCategoryDTO[]> {
-    if (this.useMock) return of([]);
     return this.http.get<ProductCategoryDTO[]>(`${this.api}/categories`)
-      .pipe(catchError(() => { this.useMock = true; return of([]); }));
+      .pipe(catchError(() => of([])));
   }
 
   createCategory(data: ProductCategoryDTO): Observable<ProductCategoryDTO> {
@@ -76,8 +70,6 @@ export class ProductService {
       headers: this.auth.roleHeader
     });
   }
-
-  // ── Ingredients ───────────────────────────────────────────────────────────
 
   getIngredients(): Observable<IngredientDTO[]> {
     return this.http.get<IngredientDTO[]>(`${this.api}/ingredients`)
@@ -102,14 +94,11 @@ export class ProductService {
     });
   }
 
-  // ── Allergens ─────────────────────────────────────────────────────────────
 
   getAllergens(): Observable<AllergenDTO[]> {
     return this.http.get<AllergenDTO[]>(`${this.api}/allergens`)
       .pipe(catchError(() => of([])));
   }
-
-  // ── Alternatives ──────────────────────────────────────────────────────────
 
   getAlternatives(id: number, limit = 5): Observable<AlternativeSuggestionDTO[]> {
     return this.http.get<AlternativeSuggestionDTO[]>(
@@ -117,8 +106,6 @@ export class ProductService {
       { params: new HttpParams().set('limit', limit.toString()) }
     ).pipe(catchError(() => of([])));
   }
-
-  // ── Claim analysis ────────────────────────────────────────────────────────
 
   analyzeClaims(productId: number, rawClaims: string[]): Observable<ProductClaimDTO[]> {
     const body: ClaimAnalysisRequestDTO = { rawClaims };

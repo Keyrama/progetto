@@ -15,15 +15,24 @@ import java.time.LocalDateTime;
  *  - the raw text as it appears on the label
  *  - the matched ClaimDefinition from the master library (if found)
  *  - the dynamic ValidationResult against the product's actual data
+ *
+ * Uniqueness note:
+ *   The original unique constraint on (product_id, claim_definition_id) was
+ *   problematic for UNMATCHED claims because claim_definition_id is NULL for
+ *   those rows. SQL NULL semantics mean that two NULL values do NOT violate a
+ *   unique constraint on most databases, so multiple UNMATCHED claims per
+ *   product would be silently allowed.
+ *
+ *   The constraint is dropped in favour of application-level deduplication:
+ *   ClaimAnalysisService deduplicates rawClaims before inserting, and always
+ *   deletes previous results before a new analysis (full replacement).
+ *   This is both correct and database-agnostic.
  */
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "product_claims",
-        uniqueConstraints = @UniqueConstraint(
-                columnNames = {"product_id", "claim_definition_id"}
-        ))
+@Table(name = "product_claims")
 public class ProductClaim {
 
     public enum AnalysisStatus {

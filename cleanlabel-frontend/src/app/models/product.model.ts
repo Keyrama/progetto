@@ -99,11 +99,13 @@ export interface ProductDTO {
   mayContainAllergenIds?: number[];
   mayContainAllergens?: AllergenDTO[];
   sustainabilityScore?: number;
-  // output-only
+  // output-only (computed by the backend)
   healthScore?: number;
   cleanLabel?: boolean;
   declaredAllergens?: AllergenDTO[];
-  claims?: ProductClaimDTO[];
+  // Claims are NOT part of ProductDTO.
+  // They are fetched separately via GET /api/products/{id}/claims
+  // and managed in the component as independent session state.
 }
 
 // ── Alternatives ──────────────────────────────────────────────────────────────

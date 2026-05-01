@@ -83,13 +83,13 @@ public class Product {
     )
     private List<Allergen> mayContainAllergens = new ArrayList<>();
 
-    /**
-     * Claims found on this product's label.
-     * Populated by ClaimAnalysisService — not set directly.
+    /*
+     * Claims are NOT a field of Product.
+     * They are the result of an explicit analysis operation performed by a
+     * SPECIALIST or CORPORATE user via POST /api/products/{id}/claims/analyze.
+     * They are retrieved separately via GET /api/products/{id}/claims.
+     * Use ProductClaimRepository.findByProductId() to access them.
      */
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,
-            orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ProductClaim> claims = new ArrayList<>();
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -103,14 +103,7 @@ public class Product {
         return ingredients.stream()
                 .flatMap(i -> i.getAllergens().stream())
                 .distinct()
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    public void addIngredient(Ingredient ingredient) {
-        this.ingredients.add(ingredient);
-    }
-
-    public void addMayContainAllergen(Allergen allergen) {
-        this.mayContainAllergens.add(allergen);
-    }
 }

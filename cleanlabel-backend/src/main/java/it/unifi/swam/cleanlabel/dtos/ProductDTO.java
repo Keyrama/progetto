@@ -10,16 +10,14 @@ import java.util.List;
 /**
  * Unified DTO for Product.
  *
- * Why split here despite the general rule?
- *
  * Input (POST/PUT): name, brand, description, categoryId, nutritionalValue,
  *   ingredientIds, mayContainAllergenIds, sustainabilityScore.
  *   Fields like healthScore, cleanLabel, declaredAllergens are COMPUTED by the system.
  *
  * Output (GET): all of the above plus the computed fields.
  *
- * We keep a single class and let the service simply ignore computed fields on write.
- * On read, the mapper populates everything. This avoids duplication for a prototype.
+ * Claims are NOT included here. They are the result of an explicit analysis
+ * and are retrieved separately via GET /api/products/{id}/claims.
  */
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ProductDTO {
@@ -75,7 +73,4 @@ public class ProductDTO {
      * Computed at read time from ingredient.allergens — not stored separately.
      */
     private List<AllergenDTO> declaredAllergens;
-
-    /** Claims found on the label with analysis results */
-    private List<ProductClaimDTO> claims;
 }

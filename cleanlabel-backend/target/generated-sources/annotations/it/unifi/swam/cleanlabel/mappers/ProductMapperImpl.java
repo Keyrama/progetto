@@ -3,7 +3,6 @@ package it.unifi.swam.cleanlabel.mappers;
 import it.unifi.swam.cleanlabel.dtos.AllergenDTO;
 import it.unifi.swam.cleanlabel.dtos.ProductDTO;
 import it.unifi.swam.cleanlabel.model.Allergen;
-import it.unifi.swam.cleanlabel.model.NutritionalValue;
 import it.unifi.swam.cleanlabel.model.Product;
 import it.unifi.swam.cleanlabel.model.ProductCategory;
 import java.util.ArrayList;
@@ -14,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-04-25T18:35:22+0200",
+    date = "2026-05-01T12:50:35+0200",
     comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.9 (Microsoft)"
 )
 @Component
@@ -26,8 +25,6 @@ public class ProductMapperImpl implements ProductMapper {
     private IngredientMapper ingredientMapper;
     @Autowired
     private AllergenMapper allergenMapper;
-    @Autowired
-    private ProductClaimMapper productClaimMapper;
 
     @Override
     public ProductDTO toDTO(Product product) {
@@ -49,7 +46,6 @@ public class ProductMapperImpl implements ProductMapper {
         productDTO.sustainabilityScore( product.getSustainabilityScore() );
         productDTO.healthScore( product.getHealthScore() );
         productDTO.cleanLabel( product.isCleanLabel() );
-        productDTO.claims( productClaimMapper.toDTOList( product.getClaims() ) );
 
         productDTO.declaredAllergens( allergenMapper.toDTOList(product.getDeclaredAllergens()) );
         productDTO.ingredientIds( product.getIngredients().stream().map(i -> i.getId()).collect(java.util.stream.Collectors.toList()) );
@@ -129,10 +125,7 @@ public class ProductMapperImpl implements ProductMapper {
             product.setSustainabilityScore( dto.getSustainabilityScore() );
         }
         if ( dto.getNutritionalValue() != null ) {
-            if ( product.getNutritionalValue() == null ) {
-                product.setNutritionalValue( new NutritionalValue() );
-            }
-            nutritionalValueMapper.updateEntity( dto.getNutritionalValue(), product.getNutritionalValue() );
+            product.setNutritionalValue( nutritionalValueMapper.toEntity( dto.getNutritionalValue() ) );
         }
         if ( product.getDeclaredAllergens() != null ) {
             product.getDeclaredAllergens().clear();

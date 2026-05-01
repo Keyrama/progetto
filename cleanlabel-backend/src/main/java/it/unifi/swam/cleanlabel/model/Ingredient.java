@@ -50,8 +50,13 @@ public class Ingredient {
     /**
      * Allergens contained in this ingredient.
      * E.g. "wheat flour" → [GLUTEN].
+     *
+     * LAZY: allergens are only loaded when explicitly accessed (e.g. in
+     * getDeclaredAllergens()). Loading them eagerly would cause N extra
+     * queries every time any ingredient is touched, even when allergens
+     * are not needed (e.g. health score computation, claim validation).
      */
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "ingredient_allergens",
             joinColumns = @JoinColumn(name = "ingredient_id"),

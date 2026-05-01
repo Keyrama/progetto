@@ -5,7 +5,9 @@ import it.unifi.swam.cleanlabel.exception.ResourceNotFoundException;
 import it.unifi.swam.cleanlabel.mappers.ClaimDefinitionMapper;
 import it.unifi.swam.cleanlabel.model.ClaimDefinition;
 import it.unifi.swam.cleanlabel.repository.ClaimDefinitionRepository;
+import it.unifi.swam.cleanlabel.repository.spec.ClaimDefinitionSpecifications;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,19 +21,22 @@ public class ClaimDefinitionService {
     private final ClaimDefinitionRepository claimDefinitionRepository;
     private final ClaimDefinitionMapper claimDefinitionMapper;
 
+    /**
+     * Returns claim definitions filtered by any combination of misleading and type.
+     * Filters compose correctly via JPA Specifications.
+     */
     public List<ClaimDefinitionDTO> findAll(Boolean misleading, String type) {
-        List<ClaimDefinition> results;
+        Specification<ClaimDefinition> spec = Specification.where(null);
 
         if (Boolean.TRUE.equals(misleading)) {
-            results = claimDefinitionRepository.findByMisleadingTrue();
-        } else if (type != null) {
-            ClaimDefinition.ClaimType claimType = parseClaimType(type);
-            results = claimDefinitionRepository.findByClaimType(claimType);
-        } else {
-            results = claimDefinitionRepository.findAll();
+            spec = spec.and(ClaimDefinitionSpecifications.isMisleading());
         }
 
-        return claimDefinitionMapper.toDTOList(results);
+        if (type != null) {
+            spec = spec.and(ClaimDefinitionSpecifications.hasClaimType(parseClaimType(type)));
+        }
+
+        return claimDefinitionMapper.toDTOList(claimDefinitionRepository.findAll(spec));
     }
 
     public ClaimDefinitionDTO findById(Long id) {
@@ -59,7 +64,7 @@ public class ClaimDefinitionService {
 
     // ── Internal helpers ──────────────────────────────────────────────────────
 
-    public ClaimDefinition getClaimDefinitionOrThrow(Long id) {
+    private ClaimDefinition getClaimDefinitionOrThrow(Long id) {
         return claimDefinitionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ClaimDefinition", id));
     }
