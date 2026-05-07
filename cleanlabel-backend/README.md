@@ -1,122 +1,193 @@
-# Clean Label Backend
+# Clean Label
 
-Prototipo Backend RESTful per il progetto SWAM 2024-2025 — University of Florence.
+Prototipo full-stack per il progetto SWAM 2024-2025 — Università di Firenze.
 
-## Tecnologie
-
-- **Java 17** + **Jakarta EE 10**
-- **WildFly 30** (server applicativo)
-- **Hibernate 6** (implementazione JPA)
-- **MySQL 8** (database)
-- **Docker + Docker Compose** (per avvio semplificato)
+Il sistema analizza i claim presenti sulle etichette di prodotti alimentari confezionati, valutandone la conformità rispetto alla normativa EU (Reg. 1924/2006) e ai dati nutrizionali/ingredienti dichiarati.
 
 ---
 
-## Avvio con Docker (consigliato)
+## Stack tecnologico
 
-### Prerequisiti
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installato e avviato
-- [Maven](https://maven.apache.org/download.cgi) installato (`mvn -v` per verificare)
-- [Java 17+](https://adoptium.net/) installato (`java -version` per verificare)
+### Backend
+- **Java 21** + **Spring Boot 3.2**
+- **Spring Data JPA** + **Hibernate 6**
+- **PostgreSQL 15**
+- **Liquibase** (migration e seed del database)
+- **MapStruct 1.6** (mapping Entity ↔ DTO)
+- **Caffeine** (cache in-memory)
 
-### Step 1 — Compila il progetto
+### Frontend
+- **Angular 17**
+- **Bootstrap 5** + **Bootstrap Icons**
+- **TypeScript 5.4**
+
+---
+
+## Prerequisiti
+
+- Java 21+
+- Maven 3.9+
+- Node.js 18+ e npm
+- Docker Desktop (per avviare PostgreSQL)
+
+---
+
+## Avvio del backend
+
+### 1. Avvia PostgreSQL con Docker
+
 ```bash
-mvn clean package -DskipTests
-```
-Questo produce il file `target/cleanlabel-backend-1.0-SNAPSHOT.war`.
-
-### Step 2 — Avvia i container
-```bash
-docker-compose up -d --build
-```
-Questo comando:
-1. Scarica e avvia **MySQL 8** con il database `cleanlabel_db` già creato
-2. Scarica e avvia **WildFly 30** con il datasource MySQL pre-configurato
-3. Deploya automaticamente il file `.war` su WildFly
-4. Il `DatabaseSeeder` popola il DB con dati di esempio al primo avvio
-
-### Step 3 — Verifica che funzioni
-Apri il browser e vai su:
-```
-http://localhost:8080/cleanlabel-backend/api/products
-```
-Dovresti vedere la lista dei 5 prodotti di esempio in formato JSON.
-
----
-
-## Endpoints disponibili
-
-| Metodo | URL | Descrizione |
-|--------|-----|-------------|
-| GET | `/api/products` | Lista prodotti (con filtri) |
-| GET | `/api/products/{id}` | Dettaglio prodotto |
-| GET | `/api/products/{id}/score` | Health score breakdown |
-| GET | `/api/products/{id}/claims` | Claims del prodotto |
-| GET | `/api/products/{id}/alternatives` | Alternative più sane |
-| GET | `/api/products/{id}/ingredients` | Ingredienti del prodotto |
-| POST | `/api/products` | Crea prodotto |
-| PUT | `/api/products/{id}` | Aggiorna prodotto |
-| DELETE | `/api/products/{id}` | Elimina prodotto |
-| GET | `/api/categories` | Lista categorie |
-| GET | `/api/ingredients` | Lista ingredienti |
-| GET | `/api/ingredients/search?q=...` | Cerca ingrediente |
-| GET | `/api/auth/mock-user` | Utente mock CORPORATE |
-| GET | `/api/auth/mock-consumer` | Utente mock CONSUMER |
-
-### Esempi di filtro su GET /api/products
-```
-?category=Snacks
-?minScore=60
-?maxScore=40
-?allergen=GLUTEN          ← esclude prodotti con glutine
-?cleanOnly=true
-?page=0&size=10
+cd cleanlabel-backend
+docker-compose up -d
 ```
 
----
+Questo avvia un container PostgreSQL 16 con:
+- Database: `cleanlabel`
+- Utente: `postgres` / Password: `postgres`
+- Porta: `5432`
 
-## Fermare i container
+I dati persistono tra i riavvii grazie al volume `cleanlabel_data`.
+
+Per fermare il container:
 ```bash
 docker-compose down
 ```
 
-Per fermare E cancellare anche i dati del database:
+Per fermare e cancellare anche i dati:
 ```bash
 docker-compose down -v
 ```
+
+### 2. Avvia il backend
+
+```bash
+mvn spring-boot:run
+```
+
+Al primo avvio **Liquibase** esegue automaticamente le migration in ordine:
+- `V1__schema.sql` — crea tutte le tabelle
+- `V2__seed_data.sql` — popola il database con:
+- 14 allergeni EU (Reg. 1169/2011)
+- 30 ingredienti a vari livelli di rischio
+- 8 categorie di prodotto
+- 16 prodotti (2 per categoria, uno migliore e uno peggiore per testare i suggerimenti alternativi)
+- 16 claim definitions (libreria EU)
+
+Ai riavvii successivi Liquibase verifica la tabella `DATABASECHANGELOG` e non riesegue script già applicati — i dati inseriti manualmente dalla UI vengono preservati.
+
+Per aggiungere nuovi dati seed in futuro è sufficiente creare un nuovo script `V3__...sql` nella cartella delle migration.
+
+Il backend è raggiungibile su:
+```
+http://localhost:8080/cleanlabel-backend
+```
+
+---
+
+## Avvio del frontend
+
+```bash
+cd cleanlabel-frontend
+npm install
+ng serve
+```
+
+Il frontend è raggiungibile su `http://localhost:4200`.
+
+---
+
+## Autenticazione mock
+
+Il sistema usa un'autenticazione simulata tramite header HTTP `X-Mock-User-Role`. Non è richiesto login — il ruolo si seleziona direttamente dalla navbar.
+
+| Ruolo | Permessi |
+|---|---|
+| `CONSUMER` | Lettura catalogo, dettaglio prodotti |
+| `SPECIALIST` | + Analisi claim su prodotti, gestione libreria claim |
+| `CORPORATE` | + Creazione/modifica/eliminazione prodotti, ingredienti, categorie |
+
+---
+
+## Endpoints API principali
+
+Tutti gli endpoint sono sotto `/cleanlabel-backend/api`.
+
+### Prodotti
+| Metodo | URL | Ruolo |
+|---|---|---|
+| GET | `/products` | tutti |
+| GET | `/products/{id}` | tutti |
+| GET | `/products/{id}/alternatives` | tutti |
+| GET | `/products/{id}/claims` | tutti |
+| POST | `/products/{id}/claims/analyze` | SPECIALIST, CORPORATE |
+| POST | `/products` | CORPORATE |
+| PUT | `/products/{id}` | CORPORATE |
+| DELETE | `/products/{id}` | CORPORATE |
+
+### Filtri disponibili su `GET /products`
+```
+?search=bio
+?category=3
+?cleanLabel=true
+```
+I filtri sono combinabili: `?search=bio&cleanLabel=true` funziona correttamente.
+
+### Claim definitions (libreria)
+| Metodo | URL | Ruolo |
+|---|---|---|
+| GET | `/claims/definitions` | tutti |
+| POST | `/claims/definitions` | SPECIALIST, CORPORATE |
+| PUT | `/claims/definitions/{id}` | SPECIALIST, CORPORATE |
+| DELETE | `/claims/definitions/{id}` | CORPORATE |
+
+### Altri endpoint
+| Metodo | URL | Descrizione |
+|---|---|---|
+| GET | `/categories` | Lista categorie |
+| GET | `/ingredients` | Lista ingredienti |
+| GET | `/allergens` | Lista allergeni EU |
 
 ---
 
 ## Struttura del progetto
 
 ```
-src/main/java/it/unifi/swam/cleanlabel/
-├── model/          Entity JPA (tabelle del DB)
-├── dtos/           Data Transfer Objects (JSON scambiati con il FE)
-├── mappers/        Conversione Entity ↔ DTO
-├── rest/           Endpoint JAX-RS (logica HTTP)
-└── startup/        DatabaseSeeder (dati di esempio)
+cleanlabel-backend/
+└── src/main/java/it/unifi/swam/cleanlabel/
+    ├── config/         RoleGuard (autenticazione mock), CORS
+    ├── controller/     REST controllers
+    ├── dtos/           Data Transfer Objects
+    ├── exception/      GlobalExceptionHandler, ResourceNotFoundException
+    ├── mappers/        MapStruct (Entity ↔ DTO)
+    ├── model/          Entità JPA
+    ├── repository/     Spring Data JPA + Specifications
+    │   └── spec/       Predicati componibili per i filtri
+    └── service/
+        ├── validator/  Strategia di validazione claim (Strategy pattern)
+        └── *.java      Business logic
 
-src/main/resources/
-└── META-INF/
-    └── persistence.xml   Configurazione JPA
-
-docker/
-└── wildfly/
-    └── standalone.xml    Configurazione WildFly (datasource MySQL)
-
-docker-compose.yml        Orchestrazione MySQL + WildFly
-pom.xml                   Dipendenze Maven
+cleanlabel-frontend/
+└── src/app/
+    ├── components/
+    │   ├── admin-catalogue/          Gestione catalogo (CORPORATE)
+    │   ├── admin-categories/         Gestione categorie
+    │   ├── admin-claim-definitions/  Libreria claim (SPECIALIST+CORPORATE)
+    │   ├── admin-ingredients/        Gestione ingredienti
+    │   ├── navbar/
+    │   ├── product-alternatives/     Suggerimenti prodotti alternativi
+    │   ├── product-card/
+    │   ├── product-detail/           Dettaglio + analisi claim
+    │   ├── product-filter/
+    │   └── product-list/
+    ├── models/         Interfacce TypeScript
+    └── services/       HTTP client verso il backend
 ```
 
 ---
 
-## Credenziali database (solo per sviluppo)
+## Note di design
 
-| Parametro | Valore |
-|-----------|--------|
-| Host | `localhost:3306` |
-| Database | `cleanlabel_db` |
-| Utente | `cleanlabel_user` |
-| Password | `cleanlabel_pass` |
-| Root password | `cleanlabel_root` |
+- **Claim analysis** — processo in due fasi: matching del termine nella libreria, poi validazione dinamica contro ingredienti e valori nutrizionali tramite Strategy pattern.
+- **Alternative suggerite** — calcolate a runtime comparando prodotti della stessa categoria con health score superiore. Nessuna entità persistita.
+- **Filtri prodotti** — implementati con JPA Specification per permettere combinazioni arbitrarie di parametri nella stessa query.
+- **DDL** — gestito da **Liquibase** con script versionati in `db/migration/`. `ddl-auto=validate` verifica che lo schema sia allineato alle entità senza modificarlo. Per un reset completo basta droppare il DB e riavviare — Liquibase ricrea tutto da zero.

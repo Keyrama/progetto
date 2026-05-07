@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- ── allergens ──────────────────────────────────────────────────────── -->
+    <changeSet id="1-create-allergens" author="cleanlabel">
+        <createTable tableName="allergens">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="VARCHAR(500)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ── product_categories ─────────────────────────────────────────────── -->
+    <changeSet id="2-create-product-categories" author="cleanlabel">
+        <createTable tableName="product_categories">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="VARCHAR(500)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ── nutritional_values ─────────────────────────────────────────────── -->
+    <changeSet id="3-create-nutritional-values" author="cleanlabel">
+        <createTable tableName="nutritional_values">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="calories" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="proteins" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="carbohydrates" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sugars" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fats" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="saturated_fats" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="salt" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fiber" type="DOUBLE"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ── ingredients ────────────────────────────────────────────────────── -->
+    <changeSet id="4-create-ingredients" author="cleanlabel">
+        <createTable tableName="ingredients">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="additive_code" type="VARCHAR(10)"/>
+            <column name="description" type="VARCHAR(1000)"/>
+            <column name="is_artificial" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="risk_level" type="VARCHAR(255)" defaultValue="LOW">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- ── ingredient_allergens ───────────────────────────────────────────── -->
+    <changeSet id="5-create-ingredient-allergens" author="cleanlabel">
+        <createTable tableName="ingredient_allergens">
+            <column name="ingredient_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="allergen_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="ingredient_allergens"
+                       columnNames="ingredient_id,allergen_id"/>
+        <addForeignKeyConstraint baseTableName="ingredient_allergens"
+                                 baseColumnNames="ingredient_id"
+                                 referencedTableName="ingredients"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_ingall_ingredient"/>
+        <addForeignKeyConstraint baseTableName="ingredient_allergens"
+                                 baseColumnNames="allergen_id"
+                                 referencedTableName="allergens"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_ingall_allergen"/>
+    </changeSet>
+
+    <!-- ── products ───────────────────────────────────────────────────────── -->
+    <changeSet id="6-create-products" author="cleanlabel">
+        <createTable tableName="products">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="brand" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(1000)"/>
+            <column name="health_score" type="INTEGER"/>
+            <column name="sustainability_score" type="INTEGER"/>
+            <column name="is_clean_label" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category_id" type="BIGINT"/>
+            <column name="nutritional_value_id" type="BIGINT">
+                <constraints unique="true"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="products"
+                                 baseColumnNames="category_id"
+                                 referencedTableName="product_categories"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_product_category"/>
+        <addForeignKeyConstraint baseTableName="products"
+                                 baseColumnNames="nutritional_value_id"
+                                 referencedTableName="nutritional_values"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_product_nutritional_value"/>
+    </changeSet>
+
+    <!-- ── product_ingredients ────────────────────────────────────────────── -->
+    <changeSet id="7-create-product-ingredients" author="cleanlabel">
+        <createTable tableName="product_ingredients">
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ingredient_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="product_ingredients"
+                       columnNames="product_id,ingredient_id"/>
+        <addForeignKeyConstraint baseTableName="product_ingredients"
+                                 baseColumnNames="product_id"
+                                 referencedTableName="products"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_prodingr_product"/>
+        <addForeignKeyConstraint baseTableName="product_ingredients"
+                                 baseColumnNames="ingredient_id"
+                                 referencedTableName="ingredients"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_prodingr_ingredient"/>
+    </changeSet>
+
+    <!-- ── product_may_contain_allergens ──────────────────────────────────── -->
+    <changeSet id="8-create-product-may-contain-allergens" author="cleanlabel">
+        <createTable tableName="product_may_contain_allergens">
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="allergen_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="product_may_contain_allergens"
+                       columnNames="product_id,allergen_id"/>
+        <addForeignKeyConstraint baseTableName="product_may_contain_allergens"
+                                 baseColumnNames="product_id"
+                                 referencedTableName="products"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_maycontain_product"/>
+        <addForeignKeyConstraint baseTableName="product_may_contain_allergens"
+                                 baseColumnNames="allergen_id"
+                                 referencedTableName="allergens"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_maycontain_allergen"/>
+    </changeSet>
+
+    <!-- ── claim_definitions ──────────────────────────────────────────────── -->
+    <changeSet id="9-create-claim-definitions" author="cleanlabel">
+        <createTable tableName="claim_definitions">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="term" type="VARCHAR(200)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="claim_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_regulated" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_misleading" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="misleading_reason" type="VARCHAR(255)" defaultValue="NONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="explanation" type="VARCHAR(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="regulatory_reference" type="VARCHAR(300)"/>
+            <column name="validation_strategy" type="VARCHAR(255)" defaultValue="NONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="validation_threshold" type="DOUBLE"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ── product_claims ─────────────────────────────────────────────────── -->
+    <changeSet id="10-create-product-claims" author="cleanlabel">
+        <createTable tableName="product_claims">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="claim_definition_id" type="BIGINT"/>
+            <column name="raw_label" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="verdict" type="VARCHAR(255)"/>
+            <column name="validation_detail" type="VARCHAR(500)"/>
+            <column name="analyzed_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="product_claims"
+                                 baseColumnNames="product_id"
+                                 referencedTableName="products"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_claim_product"/>
+        <addForeignKeyConstraint baseTableName="product_claims"
+                                 baseColumnNames="claim_definition_id"
+                                 referencedTableName="claim_definitions"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_claim_definition"/>
+    </changeSet>
+
+    <!-- ── users ──────────────────────────────────────────────────────────── -->
+    <changeSet id="11-create-users" author="cleanlabel">
+        <createTable tableName="users">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="email" type="VARCHAR(200)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="role" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

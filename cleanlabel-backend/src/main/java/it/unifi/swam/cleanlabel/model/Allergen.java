@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 
 /**
  * Master entity for the 14 major allergens defined by EU Regulation No 1169/2011.
- * Populated via data.sql at boot. Not user-editable.
  */
 @Getter
 @Setter
