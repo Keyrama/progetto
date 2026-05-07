@@ -11,7 +11,8 @@ import { Router } from '@angular/router';
   styleUrls: ['./admin-catalogue.component.scss'],
 })
 export class AdminCatalogueComponent implements OnInit, OnDestroy {
-  activeTab: 'products' | 'categories' | 'ingredients' = 'products';
+
+  activeTab: 'products' | 'categories' | 'ingredients' | 'claims' = 'products';
 
   products: ProductDTO[] = [];
   categories: ProductCategoryDTO[] = [];
@@ -24,6 +25,9 @@ export class AdminCatalogueComponent implements OnInit, OnDestroy {
 
   private userSub!: Subscription;
 
+  get isCorporate(): boolean { return this.auth.hasRole('CORPORATE'); }
+  get isSpecialist(): boolean { return this.auth.hasRole('SPECIALIST'); }
+
   constructor(
     private productService: ProductService,
     public auth: AuthService,
@@ -31,27 +35,26 @@ export class AdminCatalogueComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // Guard iniziale
-    if (!this.auth.hasRole('CORPORATE')) {
+    if (!this.auth.hasRole('SPECIALIST', 'CORPORATE')) {
       this.router.navigate(['/products']);
       return;
     }
 
-    this.load();
-    this.reloadCategories();
+    this.activeTab = this.isCorporate ? 'products' : 'claims';
 
-    // Reagisce in tempo reale al cambio di ruolo
+    if (this.isCorporate) {
+      this.load();
+      this.reloadCategories();
+    }
+
     this.userSub = this.auth.currentUser$.subscribe(user => {
-      const isCorporate = user?.role === 'CORPORATE';
-      if (!isCorporate) {
+      if (!user || (user.role !== 'CORPORATE' && user.role !== 'SPECIALIST')) {
         this.router.navigate(['/products']);
       }
     });
   }
 
-  ngOnDestroy() {
-    this.userSub?.unsubscribe();
-  }
+  ngOnDestroy() { this.userSub?.unsubscribe(); }
 
   load() {
     this.loading = true;
@@ -92,9 +95,7 @@ export class AdminCatalogueComponent implements OnInit, OnDestroy {
     this.showToast('Prodotto salvato con successo.');
   }
 
-  onSaveError() {
-    this.showToast('Errore durante il salvataggio.', true);
-  }
+  onSaveError() { this.showToast('Errore durante il salvataggio.', true); }
 
   confirmDelete(p: ProductDTO) { this.productToDelete = p; }
 

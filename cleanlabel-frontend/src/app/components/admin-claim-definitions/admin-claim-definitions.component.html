@@ -1,0 +1,241 @@
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom">
+    <h6 class="mb-0 fw-bold">
+      <i class="bi bi-shield-check me-2 text-success"></i>Libreria Claim
+    </h6>
+    <button class="btn btn-sm btn-primary" (click)="openCreate()">
+      <i class="bi bi-plus-lg me-1"></i>Nuovo claim
+    </button>
+  </div>
+
+  <!-- Filtri -->
+  <div class="p-2 border-bottom d-flex gap-2 flex-wrap">
+    <input type="text" class="form-control form-control-sm" style="max-width:220px;"
+           placeholder="Cerca per termine…" [(ngModel)]="filterText" />
+    <select class="form-select form-select-sm" style="max-width:160px;" [(ngModel)]="filterType">
+      <option value="">Tutti i tipi</option>
+      <option *ngFor="let t of claimTypes" [value]="t">{{ t }}</option>
+    </select>
+    <select class="form-select form-select-sm" style="max-width:160px;" [(ngModel)]="filterMisleading">
+      <option value="">Tutti</option>
+      <option value="true">Solo fuorvianti</option>
+      <option value="false">Solo corretti</option>
+    </select>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-4">
+    <div class="spinner-border spinner-border-sm text-success"></div>
+  </div>
+
+  <!-- Tabella -->
+  <div class="table-responsive" *ngIf="!loading">
+    <table class="table table-sm table-hover align-middle mb-0">
+      <thead class="table-light">
+      <tr>
+        <th>Termine</th>
+        <th class="text-center">Tipo</th>
+        <th class="text-center">Regolato</th>
+        <th class="text-center">Fuorviante</th>
+        <th>Strategia</th>
+        <th class="text-end">Azioni</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let def of filtered">
+        <td>
+          <strong>{{ def.term }}</strong>
+          <p class="small text-muted mb-0" style="max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            {{ def.explanation }}
+          </p>
+        </td>
+        <td class="text-center">
+          <span class="badge" [ngClass]="claimTypeBadge(def.claimType)">{{ def.claimType }}</span>
+        </td>
+        <td class="text-center">
+          <i class="bi" [ngClass]="def.regulated ? 'bi-check-circle-fill text-success' : 'bi-x-circle text-muted'"></i>
+        </td>
+        <td class="text-center">
+          <i class="bi" [ngClass]="def.misleading ? 'bi-exclamation-triangle-fill text-danger' : 'bi-x-circle text-muted'"></i>
+        </td>
+        <td>
+          <span class="badge bg-light text-dark border small">{{ def.validationStrategy }}</span>
+        </td>
+        <td class="text-end">
+          <button class="btn btn-xs btn-outline-secondary me-1"
+                  (click)="openEdit(def)" title="Modifica">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button *ngIf="canDelete"
+                  class="btn btn-xs btn-outline-danger"
+                  (click)="confirmDelete(def)" title="Elimina">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
+      </tr>
+      <tr *ngIf="filtered.length === 0">
+        <td colspan="6" class="text-center text-muted py-3">
+          {{ filterText || filterType || filterMisleading ? 'Nessun risultato.' : 'Nessun claim nella libreria.' }}
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modale form -->
+<div *ngIf="showForm"
+     style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1040;"
+     (click)="closeForm()"></div>
+
+<div *ngIf="showForm"
+     style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+            width:min(640px,95vw);max-height:90vh;overflow-y:auto;
+            background:white;border-radius:16px;z-index:1050;
+            box-shadow:0 16px 48px rgba(0,0,0,.2);">
+  <div class="p-4" (click)="$event.stopPropagation()">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="fw-bold mb-0">
+        <i class="bi bi-{{ editing ? 'pencil' : 'plus-circle' }} me-2 text-success"></i>
+        {{ editing ? 'Modifica claim' : 'Nuovo claim' }}
+      </h6>
+      <button class="btn btn-sm btn-outline-secondary" (click)="closeForm()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <!-- Termine -->
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Termine esatto sull'etichetta *</label>
+        <input class="form-control" formControlName="term"
+               placeholder="es. senza zuccheri aggiunti"
+               [class.is-invalid]="f['term'].invalid && f['term'].touched" />
+        <div class="invalid-feedback">Campo obbligatorio</div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <!-- Tipo -->
+        <div class="col-sm-4">
+          <label class="form-label small fw-semibold">Tipo *</label>
+          <select class="form-select" formControlName="claimType">
+            <option *ngFor="let t of claimTypes" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+        <!-- Switch regolato -->
+        <div class="col-sm-4 d-flex align-items-end pb-1">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="regulated"
+                   formControlName="regulated" />
+            <label class="form-check-label small" for="regulated">
+              Regolato EU
+            </label>
+          </div>
+        </div>
+        <!-- Switch fuorviante -->
+        <div class="col-sm-4 d-flex align-items-end pb-1">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="misleading"
+                   formControlName="misleading" />
+            <label class="form-check-label small" for="misleading">
+              Fuorviante
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Motivo fuorviante (visibile solo se misleading = true) -->
+      <div class="mb-3" *ngIf="f['misleading'].value">
+        <label class="form-label small fw-semibold">Motivo</label>
+        <select class="form-select" formControlName="misleadingReason">
+          <option *ngFor="let r of misleadingReasons" [value]="r">{{ r }}</option>
+        </select>
+      </div>
+
+      <!-- Spiegazione -->
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Spiegazione *</label>
+        <textarea class="form-control" formControlName="explanation" rows="3"
+                  placeholder="Spiega il significato del claim e perché è rilevante."
+                  [class.is-invalid]="f['explanation'].invalid && f['explanation'].touched"></textarea>
+        <div class="invalid-feedback">Campo obbligatorio</div>
+      </div>
+
+      <!-- Riferimento normativo -->
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Riferimento normativo</label>
+        <input class="form-control" formControlName="regulatoryReference"
+               placeholder="es. EU Reg. 1924/2006, Annex" />
+      </div>
+
+      <div class="row g-3 mb-4">
+        <!-- Strategia di validazione -->
+        <div class="col-sm-7">
+          <label class="form-label small fw-semibold">Strategia di validazione *</label>
+          <select class="form-select" formControlName="validationStrategy">
+            <option *ngFor="let s of validationStrategies" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+        <!-- Soglia (solo se la strategia la richiede) -->
+        <div class="col-sm-5"
+             *ngIf="f['validationStrategy'].value !== 'NONE' && f['validationStrategy'].value !== 'NO_ARTIFICIAL_INGREDIENTS' && f['validationStrategy'].value !== 'NO_HIGH_RISK_INGREDIENTS'">
+          <label class="form-label small fw-semibold">Soglia (g/100g)</label>
+          <input type="number" class="form-control" formControlName="validationThreshold"
+                 placeholder="es. 5.0" step="0.1" min="0" />
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 justify-content-end border-top pt-3">
+        <button type="button" class="btn btn-outline-secondary" (click)="closeForm()">
+          Annulla
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
+          <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!saving" class="bi bi-check-lg me-2"></i>
+          {{ editing ? 'Salva modifiche' : 'Crea claim' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modale conferma eliminazione -->
+<div *ngIf="definitionToDelete"
+     style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1040;"></div>
+
+<div *ngIf="definitionToDelete"
+     style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+            width:min(420px,90vw);background:white;border-radius:16px;
+            z-index:1050;box-shadow:0 16px 48px rgba(0,0,0,.2);">
+  <div class="p-4">
+    <h6 class="fw-bold mb-2">
+      <i class="bi bi-exclamation-triangle text-danger me-2"></i>Conferma eliminazione
+    </h6>
+    <p class="text-muted small mb-4">
+      Stai per eliminare il claim <strong>{{ definitionToDelete!.term }}</strong>.
+      L'operazione non può essere annullata.
+    </p>
+    <div class="d-flex gap-2 justify-content-end">
+      <button class="btn btn-outline-secondary" (click)="cancelDelete()">Annulla</button>
+      <button class="btn btn-danger" (click)="doDelete()">
+        <i class="bi bi-trash me-1"></i>Elimina
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div *ngIf="toastMsg" class="toast show align-items-center border-0"
+       [ngClass]="toastError ? 'text-bg-danger' : 'text-bg-success'">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i class="bi me-2" [ngClass]="toastError ? 'bi-x-circle' : 'bi-check-circle'"></i>
+        {{ toastMsg }}
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto"
+              (click)="toastMsg=''"></button>
+    </div>
+  </div>
+</div>

@@ -16,6 +16,7 @@ import { ProductFormComponent } from './components/product-form/product-form.com
 import { AdminCatalogueComponent } from './components/admin-catalogue/admin-catalogue.component';
 import { AdminCategoriesComponent } from './components/admin-categories/admin-categories.component';
 import { AdminIngredientsComponent } from './components/admin-ingredients/admin-ingredients.component';
+import { AdminClaimDefinitionsComponent } from './components/admin-claim-definitions/admin-claim-definitions.component';
 
 @NgModule({
   declarations: [
@@ -30,6 +31,7 @@ import { AdminIngredientsComponent } from './components/admin-ingredients/admin-
     AdminCatalogueComponent,
     AdminCategoriesComponent,
     AdminIngredientsComponent,
+    AdminClaimDefinitionsComponent,
   ],
   imports: [
     BrowserModule,
@@ -40,7 +42,7 @@ import { AdminIngredientsComponent } from './components/admin-ingredients/admin-
     ReactiveFormsModule,
   ],
   providers: [
-    DatePipe,  // required for injection in ProductDetailComponent
+    DatePipe,
   ],
   bootstrap: [AppComponent]
 })
