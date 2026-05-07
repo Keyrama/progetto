@@ -5,7 +5,8 @@ import { catchError } from 'rxjs/operators';
 import {
   ProductDTO, ProductCategoryDTO, IngredientDTO,
   AllergenDTO, AlternativeSuggestionDTO,
-  ProductClaimDTO, ClaimAnalysisRequestDTO, ProductFilter
+  ProductClaimDTO, ClaimAnalysisRequestDTO,
+  ClaimDefinitionDTO, ProductFilter
 } from '../models/product.model';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
@@ -16,6 +17,7 @@ export class ProductService {
 
   constructor(private http: HttpClient, private auth: AuthService) {}
 
+  // ── Products ──────────────────────────────────────────────────────────────
 
   getProducts(filter: ProductFilter = {}): Observable<ProductDTO[]> {
     let params = new HttpParams();
@@ -48,6 +50,8 @@ export class ProductService {
     });
   }
 
+  // ── Categories ────────────────────────────────────────────────────────────
+
   getCategories(): Observable<ProductCategoryDTO[]> {
     return this.http.get<ProductCategoryDTO[]>(`${this.api}/categories`)
       .pipe(catchError(() => of([])));
@@ -70,6 +74,8 @@ export class ProductService {
       headers: this.auth.roleHeader
     });
   }
+
+  // ── Ingredients ───────────────────────────────────────────────────────────
 
   getIngredients(): Observable<IngredientDTO[]> {
     return this.http.get<IngredientDTO[]>(`${this.api}/ingredients`)
@@ -94,11 +100,14 @@ export class ProductService {
     });
   }
 
+  // ── Allergens ─────────────────────────────────────────────────────────────
 
   getAllergens(): Observable<AllergenDTO[]> {
     return this.http.get<AllergenDTO[]>(`${this.api}/allergens`)
       .pipe(catchError(() => of([])));
   }
+
+  // ── Alternatives ──────────────────────────────────────────────────────────
 
   getAlternatives(id: number, limit = 5): Observable<AlternativeSuggestionDTO[]> {
     return this.http.get<AlternativeSuggestionDTO[]>(
@@ -106,6 +115,8 @@ export class ProductService {
       { params: new HttpParams().set('limit', limit.toString()) }
     ).pipe(catchError(() => of([])));
   }
+
+  // ── Claim analysis ────────────────────────────────────────────────────────
 
   analyzeClaims(productId: number, rawClaims: string[]): Observable<ProductClaimDTO[]> {
     const body: ClaimAnalysisRequestDTO = { rawClaims };
@@ -122,5 +133,33 @@ export class ProductService {
     return this.http.get<ProductClaimDTO[]>(
       `${this.api}/products/${productId}/claims`, { params }
     ).pipe(catchError(() => of([])));
+  }
+
+  // ── Claim definitions library ─────────────────────────────────────────────
+
+  getClaimDefinitions(misleading?: boolean, type?: string): Observable<ClaimDefinitionDTO[]> {
+    let params = new HttpParams();
+    if (misleading != null) params = params.set('misleading', misleading.toString());
+    if (type)               params = params.set('type', type);
+    return this.http.get<ClaimDefinitionDTO[]>(`${this.api}/claims/definitions`, { params })
+      .pipe(catchError(() => of([])));
+  }
+
+  createClaimDefinition(data: ClaimDefinitionDTO): Observable<ClaimDefinitionDTO> {
+    return this.http.post<ClaimDefinitionDTO>(`${this.api}/claims/definitions`, data, {
+      headers: this.auth.roleHeader
+    });
+  }
+
+  updateClaimDefinition(id: number, data: ClaimDefinitionDTO): Observable<ClaimDefinitionDTO> {
+    return this.http.put<ClaimDefinitionDTO>(`${this.api}/claims/definitions/${id}`, data, {
+      headers: this.auth.roleHeader
+    });
+  }
+
+  deleteClaimDefinition(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.api}/claims/definitions/${id}`, {
+      headers: this.auth.roleHeader
+    });
   }
 }
