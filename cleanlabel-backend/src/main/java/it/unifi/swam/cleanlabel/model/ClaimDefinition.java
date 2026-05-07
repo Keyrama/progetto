@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 
 /**
  * Master library of known nutritional and marketing claims.
- * Populated via data.sql at boot — not freely editable by end users.
- *
  * Each entry defines:
  *  - whether the claim is regulated by EU law (Reg. 1924/2006)
  *  - whether it is potentially misleading for consumers

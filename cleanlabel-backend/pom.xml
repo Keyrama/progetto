@@ -51,6 +51,12 @@
             <artifactId>caffeine</artifactId>
         </dependency>
 
+        <!-- Liquibase migrations -->
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
+
         <!-- PostgreSQL driver -->
         <dependency>
             <groupId>org.postgresql</groupId>
