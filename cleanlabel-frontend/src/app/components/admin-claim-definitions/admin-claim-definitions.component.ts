@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ClaimDefinitionDTO, ClaimType, ValidationStrategy, MisleadingReason } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import { AuthService } from '../../services/auth.service';
+import { ClaimDefinitionCriteria } from '../../services/filters/claim-definition-criteria';
 
 @Component({
   selector: 'app-admin-claim-definitions',
@@ -10,6 +11,8 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./admin-claim-definitions.component.scss'],
 })
 export class AdminClaimDefinitionsComponent implements OnInit {
+  readonly Math = Math;
+
   definitions: ClaimDefinitionDTO[] = [];
   loading = true;
   saving = false;
@@ -27,6 +30,9 @@ export class AdminClaimDefinitionsComponent implements OnInit {
   toastMsg = '';
   toastError = false;
 
+  criteria = new ClaimDefinitionCriteria(0, 10);
+  totalDefinitions = 0;
+
   readonly claimTypes: ClaimType[] = ['NUTRITIONAL', 'HEALTH', 'MARKETING'];
   readonly validationStrategies: ValidationStrategy[] = [
     'NONE', 'NO_ARTIFICIAL_INGREDIENTS', 'SUGAR_BELOW_THRESHOLD',
@@ -36,7 +42,6 @@ export class AdminClaimDefinitionsComponent implements OnInit {
     'NONE', 'NO_LEGAL_DEFINITION', 'VAGUE_CRITERIA', 'REGULATORY_BREACH'
   ];
 
-  // CORPORATE can delete, SPECIALIST can only create/edit
   get canDelete(): boolean { return this.auth.hasRole('CORPORATE'); }
 
   constructor(
@@ -45,26 +50,42 @@ export class AdminClaimDefinitionsComponent implements OnInit {
     public auth: AuthService
   ) {}
 
-  ngOnInit() { this.load(); }
+  ngOnInit() { this.loadCount(); }
+
+  loadCount() {
+    const misleading = this.filterMisleading === '' ? undefined : this.filterMisleading === 'true';
+    const type = this.filterType || undefined;
+    this.productService.getClaimDefinitionsCount(misleading, type).subscribe(count => {
+      this.totalDefinitions = count;
+      this.load();
+    });
+  }
 
   load() {
     this.loading = true;
-    this.productService.getClaimDefinitions().subscribe(defs => {
+    const misleading = this.filterMisleading === '' ? undefined : this.filterMisleading === 'true';
+    const type = this.filterType || undefined;
+    this.productService.getClaimDefinitions(misleading, type, this.criteria).subscribe(defs => {
       this.definitions = defs;
       this.loading = false;
     });
   }
 
+  onPageChange(event: any) {
+    this.criteria.offset = event.first;
+    this.criteria.limit = event.rows;
+    this.load();
+  }
+
+  applyFilters() {
+    this.criteria.offset = 0;
+    this.loadCount();
+  }
+
   get filtered(): ClaimDefinitionDTO[] {
-    return this.definitions.filter(d => {
-      const matchText = !this.filterText ||
-        d.term.toLowerCase().includes(this.filterText.toLowerCase());
-      const matchType = !this.filterType || d.claimType === this.filterType;
-      const matchMisleading = this.filterMisleading === ''
-        || (this.filterMisleading === 'true' && d.misleading)
-        || (this.filterMisleading === 'false' && !d.misleading);
-      return matchText && matchType && matchMisleading;
-    });
+    if (!this.filterText) return this.definitions;
+    const q = this.filterText.toLowerCase();
+    return this.definitions.filter(d => d.term.toLowerCase().includes(q));
   }
 
   openCreate() {
@@ -79,10 +100,7 @@ export class AdminClaimDefinitionsComponent implements OnInit {
     this.showForm = true;
   }
 
-  closeForm() {
-    this.showForm = false;
-    this.editing = null;
-  }
+  closeForm() { this.showForm = false; this.editing = null; }
 
   private buildForm(def: ClaimDefinitionDTO | null): FormGroup {
     return this.fb.group({
@@ -116,7 +134,8 @@ export class AdminClaimDefinitionsComponent implements OnInit {
       next: () => {
         this.saving = false;
         this.closeForm();
-        this.load();
+        this.criteria.offset = 0;
+        this.loadCount();
         this.showToast(this.editing ? 'Claim aggiornato.' : 'Claim creato.');
       },
       error: () => {
@@ -134,7 +153,8 @@ export class AdminClaimDefinitionsComponent implements OnInit {
     this.productService.deleteClaimDefinition(this.definitionToDelete.id).subscribe({
       next: () => {
         this.definitionToDelete = null;
-        this.load();
+        this.criteria.offset = 0;
+        this.loadCount();
         this.showToast('Claim eliminato.');
       },
       error: () => {

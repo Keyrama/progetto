@@ -4,25 +4,21 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
 import { ProductDTO, ProductFilter } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
+import { ProductCriteria } from '../../services/filters/product-criteria';
 
 @Component({
   selector: 'app-product-list',
   templateUrl: './product-list.component.html',
 })
 export class ProductListComponent implements OnInit, OnDestroy {
-  // All products returned by the backend
-  allProducts: ProductDTO[] = [];
-  // Slice shown in the current page
   products: ProductDTO[] = [];
-
   filter: ProductFilter = {};
   loading = false;
 
-  // Client-side pagination (backend returns a flat list)
-  currentPage = 0;
-  pageSize = 12;
+  criteria = new ProductCriteria(0, 6);
   totalElements = 0;
   totalPages = 0;
+  currentPage = 0;
 
   private filter$ = new Subject<ProductFilter>();
   private destroy$ = new Subject<void>();
@@ -33,15 +29,17 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.filter$.pipe(
       debounceTime(300),
       distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
-      switchMap(f => { this.loading = true; return this.productService.getProducts(f); }),
+      switchMap(f => {
+        this.loading = true;
+        this.criteria.offset = 0;
+        this.currentPage = 0;
+        return this.productService.getProductsCount(f);
+      }),
       takeUntil(this.destroy$)
-    ).subscribe(products => {
-      this.allProducts = products;
-      this.totalElements = products.length;
-      this.totalPages = Math.ceil(products.length / this.pageSize);
-      this.currentPage = 0;
-      this.applyPage();
-      this.loading = false;
+    ).subscribe(count => {
+      this.totalElements = count;
+      this.totalPages = Math.ceil(count / this.criteria.limit);
+      this.loadPage();
     });
 
     this.filter$.next(this.filter);
@@ -62,7 +60,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
   goToPage(p: number) {
     if (p < 0 || p >= this.totalPages) return;
     this.currentPage = p;
-    this.applyPage();
+    this.criteria.offset = p * this.criteria.limit;
+    this.loadPage();
   }
 
   onProductSelected(id: number) { this.router.navigate(['/products', id]); }
@@ -80,8 +79,11 @@ export class ProductListComponent implements OnInit, OnDestroy {
     return 'score-low';
   }
 
-  private applyPage() {
-    const start = this.currentPage * this.pageSize;
-    this.products = this.allProducts.slice(start, start + this.pageSize);
+  private loadPage() {
+    this.loading = true;
+    this.productService.getProducts(this.filter, this.criteria).subscribe(products => {
+      this.products = products;
+      this.loading = false;
+    });
   }
 }

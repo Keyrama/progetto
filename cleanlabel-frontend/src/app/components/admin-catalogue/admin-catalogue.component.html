@@ -110,6 +110,26 @@
         </table>
       </div>
     </div>
+    <!-- Paginazione prodotti -->
+    <nav *ngIf="totalProducts > criteria.limit" class="d-flex justify-content-center mt-3">
+      <ul class="pagination pagination-sm mb-0">
+        <li class="page-item" [class.disabled]="criteria.offset === 0">
+          <button class="page-link" (click)="onProductPageChange({first: criteria.offset - criteria.limit, rows: criteria.limit})">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+        </li>
+        <li class="page-item disabled">
+      <span class="page-link">
+        {{ criteria.offset / criteria.limit + 1 }} / {{ Math.ceil(totalProducts / criteria.limit) }}
+      </span>
+        </li>
+        <li class="page-item" [class.disabled]="criteria.offset + criteria.limit >= totalProducts">
+          <button class="page-link" (click)="onProductPageChange({first: criteria.offset + criteria.limit, rows: criteria.limit})">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </li>
+      </ul>
+    </nav>
   </ng-container>
 
   <ng-container *ngIf="activeTab === 'categories' && isCorporate">

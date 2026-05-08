@@ -2,12 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProductCategoryDTO } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
+import { CategoryCriteria } from '../../services/filters/category-criteria';
 
 @Component({
   selector: 'app-admin-categories',
   templateUrl: './admin-categories.component.html',
 })
 export class AdminCategoriesComponent implements OnInit {
+  readonly Math = Math;
+
   categories: ProductCategoryDTO[] = [];
   loading = true;
   saving = false;
@@ -19,18 +22,32 @@ export class AdminCategoriesComponent implements OnInit {
   toastMsg = '';
   toastError = false;
 
+  criteria = new CategoryCriteria(0, 10);
+  totalCategories = 0;
+
   constructor(private fb: FormBuilder, private productService: ProductService) {}
 
-  ngOnInit() {
-    this.load();
+  ngOnInit() { this.loadCount(); }
+
+  loadCount() {
+    this.productService.getCategoriesCount().subscribe(count => {
+      this.totalCategories = count;
+      this.load();
+    });
   }
 
   load() {
     this.loading = true;
-    this.productService.getCategories().subscribe(cats => {
+    this.productService.getCategories(this.criteria).subscribe(cats => {
       this.categories = cats;
       this.loading = false;
     });
+  }
+
+  onPageChange(event: any) {
+    this.criteria.offset = event.first;
+    this.criteria.limit = event.rows;
+    this.load();
   }
 
   openCreate() {
@@ -51,10 +68,7 @@ export class AdminCategoriesComponent implements OnInit {
     this.showForm = true;
   }
 
-  closeForm() {
-    this.showForm = false;
-    this.editing = null;
-  }
+  closeForm() { this.showForm = false; this.editing = null; }
 
   onSubmit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
@@ -73,7 +87,8 @@ export class AdminCategoriesComponent implements OnInit {
       next: () => {
         this.saving = false;
         this.closeForm();
-        this.load();
+        this.criteria.offset = 0;
+        this.loadCount();
         this.showToast(this.editing ? 'Categoria aggiornata.' : 'Categoria creata.');
       },
       error: () => {
@@ -87,7 +102,11 @@ export class AdminCategoriesComponent implements OnInit {
     if (!cat.id) return;
     if (!confirm(`Eliminare la categoria "${cat.name}"?`)) return;
     this.productService.deleteCategory(cat.id).subscribe({
-      next: () => { this.load(); this.showToast('Categoria eliminata.'); },
+      next: () => {
+        this.criteria.offset = 0;
+        this.loadCount();
+        this.showToast('Categoria eliminata.');
+      },
       error: () => this.showToast('Errore durante l\'eliminazione.', true),
     });
   }

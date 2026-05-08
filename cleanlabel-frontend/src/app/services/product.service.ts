@@ -10,6 +10,10 @@ import {
 } from '../models/product.model';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
+import { ProductCriteria } from './filters/product-criteria';
+import { IngredientCriteria } from './filters/ingredient-criteria';
+import { CategoryCriteria } from './filters/category-criteria';
+import { ClaimDefinitionCriteria } from './filters/claim-definition-criteria';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
@@ -19,13 +23,22 @@ export class ProductService {
 
   // ── Products ──────────────────────────────────────────────────────────────
 
-  getProducts(filter: ProductFilter = {}): Observable<ProductDTO[]> {
-    let params = new HttpParams();
+  getProducts(filter: ProductFilter = {}, criteria?: ProductCriteria): Observable<ProductDTO[]> {
+    let params = criteria ? criteria.toParams() : new HttpParams();
     if (filter.search)     params = params.set('search', filter.search);
     if (filter.category)   params = params.set('category', filter.category.toString());
     if (filter.cleanLabel) params = params.set('cleanLabel', 'true');
     return this.http.get<ProductDTO[]>(`${this.api}/products`, { params })
       .pipe(catchError(() => of([])));
+  }
+
+  getProductsCount(filter: ProductFilter = {}): Observable<number> {
+    let params = new HttpParams();
+    if (filter.search)     params = params.set('search', filter.search);
+    if (filter.category)   params = params.set('category', filter.category.toString());
+    if (filter.cleanLabel) params = params.set('cleanLabel', 'true');
+    return this.http.get<number>(`${this.api}/products/count`, { params })
+      .pipe(catchError(() => of(0)));
   }
 
   getProduct(id: number): Observable<ProductDTO> {
@@ -52,9 +65,15 @@ export class ProductService {
 
   // ── Categories ────────────────────────────────────────────────────────────
 
-  getCategories(): Observable<ProductCategoryDTO[]> {
-    return this.http.get<ProductCategoryDTO[]>(`${this.api}/categories`)
+  getCategories(criteria?: CategoryCriteria): Observable<ProductCategoryDTO[]> {
+    const params = criteria ? criteria.toParams() : new HttpParams();
+    return this.http.get<ProductCategoryDTO[]>(`${this.api}/categories`, { params })
       .pipe(catchError(() => of([])));
+  }
+
+  getCategoriesCount(): Observable<number> {
+    return this.http.get<number>(`${this.api}/categories/count`)
+      .pipe(catchError(() => of(0)));
   }
 
   createCategory(data: ProductCategoryDTO): Observable<ProductCategoryDTO> {
@@ -77,9 +96,15 @@ export class ProductService {
 
   // ── Ingredients ───────────────────────────────────────────────────────────
 
-  getIngredients(): Observable<IngredientDTO[]> {
-    return this.http.get<IngredientDTO[]>(`${this.api}/ingredients`)
+  getIngredients(criteria?: IngredientCriteria): Observable<IngredientDTO[]> {
+    const params = criteria ? criteria.toParams() : new HttpParams();
+    return this.http.get<IngredientDTO[]>(`${this.api}/ingredients`, { params })
       .pipe(catchError(() => of([])));
+  }
+
+  getIngredientsCount(): Observable<number> {
+    return this.http.get<number>(`${this.api}/ingredients/count`)
+      .pipe(catchError(() => of(0)));
   }
 
   createIngredient(data: IngredientDTO): Observable<IngredientDTO> {
@@ -137,12 +162,20 @@ export class ProductService {
 
   // ── Claim definitions library ─────────────────────────────────────────────
 
-  getClaimDefinitions(misleading?: boolean, type?: string): Observable<ClaimDefinitionDTO[]> {
-    let params = new HttpParams();
+  getClaimDefinitions(misleading?: boolean, type?: string, criteria?: ClaimDefinitionCriteria): Observable<ClaimDefinitionDTO[]> {
+    let params = criteria ? criteria.toParams() : new HttpParams();
     if (misleading != null) params = params.set('misleading', misleading.toString());
     if (type)               params = params.set('type', type);
     return this.http.get<ClaimDefinitionDTO[]>(`${this.api}/claims/definitions`, { params })
       .pipe(catchError(() => of([])));
+  }
+
+  getClaimDefinitionsCount(misleading?: boolean, type?: string): Observable<number> {
+    let params = new HttpParams();
+    if (misleading != null) params = params.set('misleading', misleading.toString());
+    if (type)               params = params.set('type', type);
+    return this.http.get<number>(`${this.api}/claims/definitions/count`, { params })
+      .pipe(catchError(() => of(0)));
   }
 
   createClaimDefinition(data: ClaimDefinitionDTO): Observable<ClaimDefinitionDTO> {

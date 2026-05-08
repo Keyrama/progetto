@@ -12,11 +12,11 @@
   <div class="p-2 border-bottom d-flex gap-2 flex-wrap">
     <input type="text" class="form-control form-control-sm" style="max-width:220px;"
            placeholder="Cerca per termine…" [(ngModel)]="filterText" />
-    <select class="form-select form-select-sm" style="max-width:160px;" [(ngModel)]="filterType">
+    <select class="form-select form-select-sm" style="max-width:160px;" [(ngModel)]="filterType" (change)="applyFilters()">
       <option value="">Tutti i tipi</option>
       <option *ngFor="let t of claimTypes" [value]="t">{{ t }}</option>
     </select>
-    <select class="form-select form-select-sm" style="max-width:160px;" [(ngModel)]="filterMisleading">
+    <select class="form-select form-select-sm" style="max-width:160px;" [(ngModel)]="filterMisleading" (change)="applyFilters()">
       <option value="">Tutti</option>
       <option value="true">Solo fuorvianti</option>
       <option value="false">Solo corretti</option>
@@ -224,7 +224,26 @@
     </div>
   </div>
 </div>
-
+<!-- Paginazione -->
+<nav *ngIf="totalDefinitions > criteria.limit" class="d-flex justify-content-center mt-3">
+  <ul class="pagination pagination-sm mb-0">
+    <li class="page-item" [class.disabled]="criteria.offset === 0">
+      <button class="page-link" (click)="onPageChange({first: criteria.offset - criteria.limit, rows: criteria.limit})">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+    </li>
+    <li class="page-item disabled">
+      <span class="page-link">
+        {{ criteria.offset / criteria.limit + 1 }} / {{ Math.ceil(totalDefinitions / criteria.limit) }}
+      </span>
+    </li>
+    <li class="page-item" [class.disabled]="criteria.offset + criteria.limit >= totalDefinitions">
+      <button class="page-link" (click)="onPageChange({first: criteria.offset + criteria.limit, rows: criteria.limit})">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </li>
+  </ul>
+</nav>
 <!-- Toast -->
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
   <div *ngIf="toastMsg" class="toast show align-items-center border-0"

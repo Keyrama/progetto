@@ -31,8 +31,17 @@ public class IngredientController {
     @GetMapping
     public ResponseEntity<List<IngredientDTO>> getAll(
             @RequestParam(required = false) Boolean artificial,
+            @RequestParam(required = false) String riskLevel,
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) Integer offset) {
+        return ResponseEntity.ok(ingredientService.findAll(artificial, riskLevel, limit, offset));
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<Long> count(
+            @RequestParam(required = false) Boolean artificial,
             @RequestParam(required = false) String riskLevel) {
-        return ResponseEntity.ok(ingredientService.findAll(artificial, riskLevel));
+        return ResponseEntity.ok(ingredientService.count(artificial, riskLevel));
     }
 
     @GetMapping("/{id}")

@@ -7,6 +7,7 @@ import it.unifi.swam.cleanlabel.model.ClaimDefinition;
 import it.unifi.swam.cleanlabel.repository.ClaimDefinitionRepository;
 import it.unifi.swam.cleanlabel.repository.spec.ClaimDefinitionSpecifications;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,22 +22,30 @@ public class ClaimDefinitionService {
     private final ClaimDefinitionRepository claimDefinitionRepository;
     private final ClaimDefinitionMapper claimDefinitionMapper;
 
-    /**
-     * Returns claim definitions filtered by any combination of misleading and type.
-     * Filters compose correctly via JPA Specifications.
-     */
-    public List<ClaimDefinitionDTO> findAll(Boolean misleading, String type) {
-        Specification<ClaimDefinition> spec = Specification.where(null);
+    public List<ClaimDefinitionDTO> findAll(Boolean misleading, String type,
+                                            Integer limit, Integer offset) {
+        Specification<ClaimDefinition> spec = buildSpec(misleading, type);
 
-        if (Boolean.TRUE.equals(misleading)) {
-            spec = spec.and(ClaimDefinitionSpecifications.isMisleading());
-        }
-
-        if (type != null) {
-            spec = spec.and(ClaimDefinitionSpecifications.hasClaimType(parseClaimType(type)));
+        if (limit != null && limit > 0) {
+            int page = (offset != null ? offset : 0) / limit;
+            return claimDefinitionMapper.toDTOList(
+                    claimDefinitionRepository.findAll(spec, PageRequest.of(page, limit)).getContent());
         }
 
         return claimDefinitionMapper.toDTOList(claimDefinitionRepository.findAll(spec));
+    }
+
+    public long count(Boolean misleading, String type) {
+        return claimDefinitionRepository.count(buildSpec(misleading, type));
+    }
+
+    private Specification<ClaimDefinition> buildSpec(Boolean misleading, String type) {
+        Specification<ClaimDefinition> spec = Specification.where(null);
+        if (Boolean.TRUE.equals(misleading))
+            spec = spec.and(ClaimDefinitionSpecifications.isMisleading());
+        if (type != null)
+            spec = spec.and(ClaimDefinitionSpecifications.hasClaimType(parseClaimType(type)));
+        return spec;
     }
 
     public ClaimDefinitionDTO findById(Long id) {
@@ -61,8 +70,6 @@ public class ClaimDefinitionService {
         getClaimDefinitionOrThrow(id);
         claimDefinitionRepository.deleteById(id);
     }
-
-    // ── Internal helpers ──────────────────────────────────────────────────────
 
     private ClaimDefinition getClaimDefinitionOrThrow(Long id) {
         return claimDefinitionRepository.findById(id)

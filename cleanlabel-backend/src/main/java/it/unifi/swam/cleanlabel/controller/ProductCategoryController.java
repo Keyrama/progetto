@@ -29,10 +29,16 @@ public class ProductCategoryController {
     private final RoleGuard roleGuard;
 
     @GetMapping
-    public ResponseEntity<List<ProductCategoryDTO>> getAll() {
-        return ResponseEntity.ok(categoryService.findAll());
+    public ResponseEntity<List<ProductCategoryDTO>> getAll(
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) Integer offset) {
+        return ResponseEntity.ok(categoryService.findAll(limit, offset));
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<Long> count() {
+        return ResponseEntity.ok(categoryService.count());
+    }
     @GetMapping("/{id}")
     public ResponseEntity<ProductCategoryDTO> getById(@PathVariable Long id) {
         return ResponseEntity.ok(categoryService.findById(id));

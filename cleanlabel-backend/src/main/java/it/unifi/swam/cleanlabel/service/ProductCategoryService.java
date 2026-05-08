@@ -6,6 +6,7 @@ import it.unifi.swam.cleanlabel.mappers.ProductCategoryMapper;
 import it.unifi.swam.cleanlabel.model.ProductCategory;
 import it.unifi.swam.cleanlabel.repository.ProductCategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,8 +20,17 @@ public class ProductCategoryService {
     private final ProductCategoryRepository categoryRepository;
     private final ProductCategoryMapper categoryMapper;
 
-    public List<ProductCategoryDTO> findAll() {
+    public List<ProductCategoryDTO> findAll(Integer limit, Integer offset) {
+        if (limit != null && limit > 0) {
+            int page = (offset != null ? offset : 0) / limit;
+            return categoryMapper.toDTOList(
+                    categoryRepository.findAll(PageRequest.of(page, limit)).getContent());
+        }
         return categoryMapper.toDTOList(categoryRepository.findAll());
+    }
+
+    public long count() {
+        return categoryRepository.count();
     }
 
     public ProductCategoryDTO findById(Long id) {
@@ -45,8 +55,6 @@ public class ProductCategoryService {
         getCategoryOrThrow(id);
         categoryRepository.deleteById(id);
     }
-
-    // ── Internal helper ───────────────────────────────────────────────────────
 
     private ProductCategory getCategoryOrThrow(Long id) {
         return categoryRepository.findById(id)

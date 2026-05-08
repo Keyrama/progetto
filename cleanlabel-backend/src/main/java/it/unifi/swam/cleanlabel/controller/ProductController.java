@@ -48,9 +48,18 @@ public class ProductController {
     public ResponseEntity<List<ProductDTO>> getAll(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Long category,
-            @RequestParam(required = false) Boolean cleanLabel) {
+            @RequestParam(required = false) Boolean cleanLabel,
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) Integer offset) {
+        return ResponseEntity.ok(productService.findAll(search, category, cleanLabel, limit, offset));
+    }
 
-        return ResponseEntity.ok(productService.findAll(search, category, cleanLabel));
+    @GetMapping("/count")
+    public ResponseEntity<Long> count(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long category,
+            @RequestParam(required = false) Boolean cleanLabel) {
+        return ResponseEntity.ok(productService.count(search, category, cleanLabel));
     }
 
     @GetMapping("/{id}")

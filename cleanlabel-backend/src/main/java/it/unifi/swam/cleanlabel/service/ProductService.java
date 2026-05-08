@@ -10,6 +10,7 @@ import it.unifi.swam.cleanlabel.repository.ProductCategoryRepository;
 import it.unifi.swam.cleanlabel.repository.ProductRepository;
 import it.unifi.swam.cleanlabel.repository.spec.ProductSpecifications;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,24 +38,33 @@ public class ProductService {
      * Specifications — unlike a simple if-else chain, multiple filters
      * compose correctly (e.g. search + cleanLabel works as expected).
      */
-    public List<ProductDTO> findAll(String search, Long categoryId, Boolean cleanLabel) {
-        Specification<Product> spec = Specification.where(null);
-
-        if (search != null && !search.isBlank()) {
-            spec = spec.and(ProductSpecifications.nameOrBrandContains(search.trim()));
+    public List<ProductDTO> findAll(String search, Long categoryId, Boolean cleanLabel,
+                                    Integer limit, Integer offset) {
+        Specification<Product> spec = buildSpec(search, categoryId, cleanLabel);
+        if (limit != null && limit > 0) {
+            int page = (offset != null ? offset : 0) / limit;
+            return productMapper.toSummaryDTOList(
+                    productRepository.findAll(spec, PageRequest.of(page, limit)).getContent());
         }
+        return productMapper.toSummaryDTOList(productRepository.findAll(spec));
+    }
 
+    public long count(String search, Long categoryId, Boolean cleanLabel) {
+        return productRepository.count(buildSpec(search, categoryId, cleanLabel));
+    }
+
+    private Specification<Product> buildSpec(String search, Long categoryId, Boolean cleanLabel) {
+        Specification<Product> spec = Specification.where(null);
+        if (search != null && !search.isBlank())
+            spec = spec.and(ProductSpecifications.nameOrBrandContains(search.trim()));
         if (categoryId != null) {
             ProductCategory category = categoryRepository.findById(categoryId)
                     .orElseThrow(() -> new ResourceNotFoundException("ProductCategory", categoryId));
             spec = spec.and(ProductSpecifications.inCategory(category));
         }
-
-        if (Boolean.TRUE.equals(cleanLabel)) {
+        if (Boolean.TRUE.equals(cleanLabel))
             spec = spec.and(ProductSpecifications.cleanLabelOnly());
-        }
-
-        return productMapper.toSummaryDTOList(productRepository.findAll(spec));
+        return spec;
     }
 
     public ProductDTO findById(Long id) {

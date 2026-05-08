@@ -1,9 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { ProductDTO, ProductCategoryDTO } from '../../models/product.model';
+import { ProductDTO, ProductCategoryDTO, ProductFilter } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { ProductCriteria } from '../../services/filters/product-criteria';
 
 @Component({
   selector: 'app-admin-catalogue',
@@ -11,6 +12,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./admin-catalogue.component.scss'],
 })
 export class AdminCatalogueComponent implements OnInit, OnDestroy {
+  readonly Math = Math;
 
   activeTab: 'products' | 'categories' | 'ingredients' | 'claims' = 'products';
 
@@ -22,6 +24,10 @@ export class AdminCatalogueComponent implements OnInit, OnDestroy {
   productToDelete: ProductDTO | null = null;
   toastMsg = '';
   toastError = false;
+
+  criteria = new ProductCriteria(0, 5);
+  totalProducts = 0;
+  currentFilter: ProductFilter = {};
 
   private userSub!: Subscription;
 
@@ -43,7 +49,7 @@ export class AdminCatalogueComponent implements OnInit, OnDestroy {
     this.activeTab = this.isCorporate ? 'products' : 'claims';
 
     if (this.isCorporate) {
-      this.load();
+      this.loadCount();
       this.reloadCategories();
     }
 
@@ -56,12 +62,25 @@ export class AdminCatalogueComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() { this.userSub?.unsubscribe(); }
 
+  loadCount() {
+    this.productService.getProductsCount(this.currentFilter).subscribe(count => {
+      this.totalProducts = count;
+      this.load();
+    });
+  }
+
   load() {
     this.loading = true;
-    this.productService.getProducts({}).subscribe(products => {
+    this.productService.getProducts(this.currentFilter, this.criteria).subscribe(products => {
       this.products = products;
       this.loading = false;
     });
+  }
+
+  onProductPageChange(event: any) {
+    this.criteria.offset = event.first;
+    this.criteria.limit = event.rows;
+    this.load();
   }
 
   reloadCategories() {
@@ -91,7 +110,7 @@ export class AdminCatalogueComponent implements OnInit, OnDestroy {
 
   onSaved() {
     this.closeForm();
-    this.load();
+    this.loadCount();
     this.showToast('Prodotto salvato con successo.');
   }
 
@@ -104,7 +123,8 @@ export class AdminCatalogueComponent implements OnInit, OnDestroy {
     this.productService.deleteProduct(this.productToDelete.id).subscribe({
       next: () => {
         this.productToDelete = null;
-        this.load();
+        this.criteria.offset = 0;
+        this.loadCount();
         this.showToast('Prodotto eliminato.');
       },
       error: () => this.showToast('Errore durante l\'eliminazione.', true)

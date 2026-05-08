@@ -2,12 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IngredientDTO, AllergenDTO, RiskLevel } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
+import { IngredientCriteria } from '../../services/filters/ingredient-criteria';
 
 @Component({
   selector: 'app-admin-ingredients',
   templateUrl: './admin-ingredients.component.html',
 })
 export class AdminIngredientsComponent implements OnInit {
+  readonly Math = Math;
+
   ingredients: IngredientDTO[] = [];
   allergens: AllergenDTO[] = [];
   loading = true;
@@ -18,30 +21,43 @@ export class AdminIngredientsComponent implements OnInit {
   form!: FormGroup;
 
   selectedAllergenIds = new Set<number>();
-
-  // Delete confirmation modal state
   ingredientToDelete: IngredientDTO | null = null;
 
   readonly riskLevels: RiskLevel[] = ['LOW', 'MEDIUM', 'HIGH'];
 
   toastMsg = '';
   toastError = false;
-
   filterText = '';
+
+  criteria = new IngredientCriteria(0, 10);
+  totalIngredients = 0;
 
   constructor(private fb: FormBuilder, private productService: ProductService) {}
 
   ngOnInit() {
-    this.load();
+    this.loadCount();
     this.productService.getAllergens().subscribe(a => this.allergens = a);
+  }
+
+  loadCount() {
+    this.productService.getIngredientsCount().subscribe(count => {
+      this.totalIngredients = count;
+      this.load();
+    });
   }
 
   load() {
     this.loading = true;
-    this.productService.getIngredients().subscribe(ings => {
+    this.productService.getIngredients(this.criteria).subscribe(ings => {
       this.ingredients = ings;
       this.loading = false;
     });
+  }
+
+  onPageChange(event: any) {
+    this.criteria.offset = event.first;
+    this.criteria.limit = event.rows;
+    this.load();
   }
 
   get filtered(): IngredientDTO[] {
@@ -67,10 +83,7 @@ export class AdminIngredientsComponent implements OnInit {
     this.showForm = true;
   }
 
-  closeForm() {
-    this.showForm = false;
-    this.editing = null;
-  }
+  closeForm() { this.showForm = false; this.editing = null; }
 
   private buildForm(ing: IngredientDTO | null): FormGroup {
     return this.fb.group({
@@ -111,7 +124,8 @@ export class AdminIngredientsComponent implements OnInit {
       next: () => {
         this.saving = false;
         this.closeForm();
-        this.load();
+        this.criteria.offset = 0;
+        this.loadCount();
         this.showToast(this.editing ? 'Ingrediente aggiornato.' : 'Ingrediente creato.');
       },
       error: () => {
@@ -121,22 +135,16 @@ export class AdminIngredientsComponent implements OnInit {
     });
   }
 
-  // ── Delete with modal confirmation ────────────────────────────────────────
-
-  confirmDelete(ing: IngredientDTO) {
-    this.ingredientToDelete = ing;
-  }
-
-  cancelDelete() {
-    this.ingredientToDelete = null;
-  }
+  confirmDelete(ing: IngredientDTO) { this.ingredientToDelete = ing; }
+  cancelDelete() { this.ingredientToDelete = null; }
 
   doDelete() {
     if (!this.ingredientToDelete?.id) return;
     this.productService.deleteIngredient(this.ingredientToDelete.id).subscribe({
       next: () => {
         this.ingredientToDelete = null;
-        this.load();
+        this.criteria.offset = 0;
+        this.loadCount();
         this.showToast('Ingrediente eliminato.');
       },
       error: () => {
