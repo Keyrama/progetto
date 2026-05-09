@@ -7,8 +7,10 @@ public class ClaimDefinitionSpecifications {
 
     private ClaimDefinitionSpecifications() {}
 
-    public static Specification<ClaimDefinition> isMisleading() {
-        return (root, cq, cb) -> cb.isTrue(root.get("misleading"));
+    public static Specification<ClaimDefinition> hasMisleading(boolean misleading) {
+        return (root, cq, cb) -> misleading
+                ? cb.isTrue(root.get("misleading"))
+                : cb.isFalse(root.get("misleading"));
     }
 
     public static Specification<ClaimDefinition> hasClaimType(ClaimDefinition.ClaimType type) {

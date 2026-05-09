@@ -41,8 +41,8 @@ public class ClaimDefinitionService {
 
     private Specification<ClaimDefinition> buildSpec(Boolean misleading, String type, String search) {
         Specification<ClaimDefinition> spec = Specification.where(null);
-        if (Boolean.TRUE.equals(misleading))
-            spec = spec.and(ClaimDefinitionSpecifications.isMisleading());
+        if (misleading != null)
+            spec = spec.and(ClaimDefinitionSpecifications.hasMisleading(misleading));
         if (type != null)
             spec = spec.and(ClaimDefinitionSpecifications.hasClaimType(parseClaimType(type)));
         if (search != null && !search.isBlank())

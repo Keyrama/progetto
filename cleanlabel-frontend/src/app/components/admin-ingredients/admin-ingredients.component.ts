@@ -141,6 +141,7 @@ export class AdminIngredientsComponent implements OnInit {
 
   doDelete() {
     if (!this.ingredientToDelete?.id) return;
+    const name = this.ingredientToDelete?.name
     this.productService.deleteIngredient(this.ingredientToDelete.id).subscribe({
       next: () => {
         this.ingredientToDelete = null;
@@ -150,7 +151,7 @@ export class AdminIngredientsComponent implements OnInit {
       },
       error: () => {
         this.ingredientToDelete = null;
-        this.showToast('Errore durante l\'eliminazione.', true);
+        this.showToast(`Impossibile eliminare "${name}": ci sono prodotti collegati a questo ingrediente.`, true);
       },
     });
   }

@@ -21,7 +21,6 @@
   </div>
 
   <ul class="nav nav-tabs mb-4">
-
     <li class="nav-item" *ngIf="isCorporate">
       <button class="nav-link" [class.active]="activeTab === 'products'"
               (click)="activeTab = 'products'">
@@ -29,30 +28,27 @@
         <span class="badge bg-secondary ms-1">{{ totalProducts }}</span>
       </button>
     </li>
-
     <li class="nav-item" *ngIf="isCorporate">
       <button class="nav-link" [class.active]="activeTab === 'categories'"
               (click)="activeTab = 'categories'">
         <i class="bi bi-tag me-1"></i>Categorie
       </button>
     </li>
-
     <li class="nav-item" *ngIf="isCorporate">
       <button class="nav-link" [class.active]="activeTab === 'ingredients'"
               (click)="activeTab = 'ingredients'">
         <i class="bi bi-capsule me-1"></i>Ingredienti
       </button>
     </li>
-
     <li class="nav-item">
       <button class="nav-link" [class.active]="activeTab === 'claims'"
               (click)="activeTab = 'claims'">
         <i class="bi bi-shield-check me-1"></i>Libreria Claim
       </button>
     </li>
-
   </ul>
 
+  <!-- Tab: Prodotti -->
   <ng-container *ngIf="activeTab === 'products' && isCorporate">
     <div *ngIf="loading" class="text-center py-5">
       <div class="spinner-border" role="status"></div>
@@ -110,7 +106,7 @@
         </table>
       </div>
     </div>
-    <!-- Paginazione prodotti -->
+
     <nav *ngIf="totalProducts > criteria.limit" class="d-flex justify-content-center mt-3">
       <ul class="pagination pagination-sm mb-0">
         <li class="page-item" [class.disabled]="criteria.offset === 0">
@@ -119,9 +115,9 @@
           </button>
         </li>
         <li class="page-item disabled">
-      <span class="page-link">
-        {{ criteria.offset / criteria.limit + 1 }} / {{ Math.ceil(totalProducts / criteria.limit) }}
-      </span>
+          <span class="page-link">
+            {{ criteria.offset / criteria.limit + 1 }} / {{ Math.ceil(totalProducts / criteria.limit) }}
+          </span>
         </li>
         <li class="page-item" [class.disabled]="criteria.offset + criteria.limit >= totalProducts">
           <button class="page-link" (click)="onProductPageChange({first: criteria.offset + criteria.limit, rows: criteria.limit})">
@@ -132,8 +128,15 @@
     </nav>
   </ng-container>
 
+  <!-- Tab: Categorie -->
   <ng-container *ngIf="activeTab === 'categories' && isCorporate">
-    <app-admin-categories></app-admin-categories>
+    <app-admin-categories
+      (editRequested)="openCategoryEdit($event)"
+      (createRequested)="openCategoryCreate()"
+      (deleteRequested)="confirmCategoryDelete($event)"
+      (deleted)="onCategoryDeleted($event)"
+      (deleteFailed)="onCategoryDeleteFailed($event)">
+    </app-admin-categories>
   </ng-container>
 
   <!-- Tab: Ingredienti -->
@@ -141,11 +144,12 @@
     <app-admin-ingredients></app-admin-ingredients>
   </ng-container>
 
-  <!-- Tab: Libreria Claim (SPECIALIST + CORPORATE) -->
+  <!-- Tab: Libreria Claim -->
   <ng-container *ngIf="activeTab === 'claims'">
     <app-admin-claim-definitions></app-admin-claim-definitions>
   </ng-container>
 
+  <!-- Modal: form prodotto -->
   <div class="modal-backdrop-custom" *ngIf="showForm" (click)="closeForm()"></div>
   <div class="modal-panel" *ngIf="showForm">
     <app-product-form
@@ -157,20 +161,38 @@
     </app-product-form>
   </div>
 
-  <div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div *ngIf="toastMsg" class="toast show align-items-center border-0"
-         [ngClass]="toastError ? 'text-bg-danger' : 'text-bg-success'">
-      <div class="d-flex">
-        <div class="toast-body">
-          <i class="bi me-2" [ngClass]="toastError ? 'bi-x-circle' : 'bi-check-circle'"></i>
-          {{ toastMsg }}
+  <!-- Modal: form categoria -->
+  <div class="modal-backdrop-custom" *ngIf="showCategoryForm" (click)="closeCategoryForm()"></div>
+  <div class="modal-panel" *ngIf="showCategoryForm">
+    <div class="p-4">
+      <h6 class="fw-bold mb-3">
+        <i class="bi bi-tag me-2 text-success"></i>
+        {{ editingCategory ? 'Modifica categoria' : 'Nuova categoria' }}
+      </h6>
+      <form [formGroup]="categoryForm" (ngSubmit)="onCategorySubmit()">
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Nome *</label>
+          <input class="form-control" formControlName="name" placeholder="es. Latticini"
+                 [class.is-invalid]="categoryForm.get('name')!.invalid && categoryForm.get('name')!.touched" />
+          <div class="invalid-feedback">Campo obbligatorio</div>
         </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                (click)="toastMsg=''"></button>
-      </div>
+        <div class="mb-4">
+          <label class="form-label small fw-semibold">Descrizione</label>
+          <input class="form-control" formControlName="description"
+                 placeholder="Breve descrizione (opzionale)" />
+        </div>
+        <div class="d-flex gap-2 justify-content-end">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeCategoryForm()">Annulla</button>
+          <button type="submit" class="btn btn-primary" [disabled]="savingCategory">
+            <span *ngIf="savingCategory" class="spinner-border spinner-border-sm me-1"></span>
+            Salva
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
+  <!-- Modal: conferma eliminazione prodotto -->
   <div class="modal-backdrop-custom" *ngIf="productToDelete" (click)="productToDelete=null"></div>
   <div *ngIf="productToDelete" class="delete-confirm-modal card border-0 shadow-lg rounded-3 p-4">
     <h6 class="fw-bold mb-2">
@@ -185,6 +207,39 @@
       <button class="btn btn-sm btn-danger" (click)="doDelete()">
         <i class="bi bi-trash me-1"></i>Elimina
       </button>
+    </div>
+  </div>
+
+  <!-- Modal: conferma eliminazione categoria -->
+  <div class="modal-backdrop-custom" *ngIf="categoryToDelete" (click)="categoryToDelete=null"></div>
+  <div *ngIf="categoryToDelete" class="delete-confirm-modal card border-0 shadow-lg rounded-3 p-4">
+    <h6 class="fw-bold mb-2">
+      <i class="bi bi-exclamation-triangle text-danger me-2"></i>Conferma eliminazione
+    </h6>
+    <p class="text-muted small mb-3">
+      Stai per eliminare la categoria <strong>{{ categoryToDelete.name }}</strong>.
+      L'operazione non è reversibile.
+    </p>
+    <div class="d-flex gap-2 justify-content-end">
+      <button class="btn btn-sm btn-outline-secondary" (click)="categoryToDelete=null">Annulla</button>
+      <button class="btn btn-sm btn-danger" (click)="doCategoryDelete()">
+        <i class="bi bi-trash me-1"></i>Elimina
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div *ngIf="toastMsg" class="toast show align-items-center border-0"
+         [ngClass]="toastError ? 'text-bg-danger' : 'text-bg-success'">
+      <div class="d-flex">
+        <div class="toast-body">
+          <i class="bi me-2" [ngClass]="toastError ? 'bi-x-circle' : 'bi-check-circle'"></i>
+          {{ toastMsg }}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                (click)="toastMsg=''"></button>
+      </div>
     </div>
   </div>
 

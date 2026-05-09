@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { ProductCategoryDTO } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import { CategoryCriteria } from '../../services/filters/category-criteria';
@@ -11,21 +10,19 @@ import { CategoryCriteria } from '../../services/filters/category-criteria';
 export class AdminCategoriesComponent implements OnInit {
   readonly Math = Math;
 
+  @Output() createRequested = new EventEmitter<void>();
+  @Output() editRequested   = new EventEmitter<ProductCategoryDTO>();
+  @Output() deleteRequested = new EventEmitter<ProductCategoryDTO>();
+  @Output() deleted         = new EventEmitter<ProductCategoryDTO>();
+  @Output() deleteFailed    = new EventEmitter<ProductCategoryDTO>();
+
   categories: ProductCategoryDTO[] = [];
   loading = true;
-  saving = false;
-
-  showForm = false;
-  editing: ProductCategoryDTO | null = null;
-  form!: FormGroup;
-
-  toastMsg = '';
-  toastError = false;
 
   criteria = new CategoryCriteria(0, 10);
   totalCategories = 0;
 
-  constructor(private fb: FormBuilder, private productService: ProductService) {}
+  constructor(private productService: ProductService) {}
 
   ngOnInit() { this.loadCount(); }
 
@@ -50,72 +47,17 @@ export class AdminCategoriesComponent implements OnInit {
     this.load();
   }
 
-  openCreate() {
-    this.editing = null;
-    this.form = this.fb.group({
-      name:        ['', Validators.required],
-      description: [''],
-    });
-    this.showForm = true;
-  }
-
-  openEdit(cat: ProductCategoryDTO) {
-    this.editing = cat;
-    this.form = this.fb.group({
-      name:        [cat.name, Validators.required],
-      description: [cat.description ?? ''],
-    });
-    this.showForm = true;
-  }
-
-  closeForm() { this.showForm = false; this.editing = null; }
-
-  onSubmit() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    this.saving = true;
-
-    const payload: ProductCategoryDTO = {
-      ...(this.editing ? { id: this.editing.id } : {}),
-      ...this.form.value,
-    };
-
-    const op = this.editing
-      ? this.productService.updateCategory(payload, this.editing.id)
-      : this.productService.createCategory(payload);
-
-    op.subscribe({
-      next: () => {
-        this.saving = false;
-        this.closeForm();
-        this.criteria.offset = 0;
-        this.loadCount();
-        this.showToast(this.editing ? 'Categoria aggiornata.' : 'Categoria creata.');
-      },
-      error: () => {
-        this.saving = false;
-        this.showToast('Errore durante il salvataggio.', true);
-      },
-    });
-  }
-
-  deleteCategory(cat: ProductCategoryDTO) {
+  doDelete(cat: ProductCategoryDTO) {
     if (!cat.id) return;
-    if (!confirm(`Eliminare la categoria "${cat.name}"?`)) return;
     this.productService.deleteCategory(cat.id).subscribe({
       next: () => {
         this.criteria.offset = 0;
         this.loadCount();
-        this.showToast('Categoria eliminata.');
+        this.deleted.emit(cat);
       },
-      error: () => this.showToast('Errore durante l\'eliminazione.', true),
+      error: () => {
+        this.deleteFailed.emit(cat);
+      },
     });
   }
-
-  showToast(msg: string, error = false) {
-    this.toastMsg = msg;
-    this.toastError = error;
-    setTimeout(() => this.toastMsg = '', 3000);
-  }
-
-  get f() { return this.form?.controls ?? {}; }
 }
