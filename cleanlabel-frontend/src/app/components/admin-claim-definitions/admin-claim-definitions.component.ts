@@ -23,10 +23,6 @@ export class AdminClaimDefinitionsComponent implements OnInit {
 
   definitionToDelete: ClaimDefinitionDTO | null = null;
 
-  filterText = '';
-  filterType: string = '';
-  filterMisleading: string = '';
-
   toastMsg = '';
   toastError = false;
 
@@ -53,10 +49,7 @@ export class AdminClaimDefinitionsComponent implements OnInit {
   ngOnInit() { this.loadCount(); }
 
   loadCount() {
-    const misleading = this.filterMisleading === '' ? undefined : this.filterMisleading === 'true';
-    const type = this.filterType || undefined;
-    const search = this.filterText || undefined;
-    this.productService.getClaimDefinitionsCount(misleading, type, search).subscribe(count => {
+    this.productService.getClaimDefinitionsCount(this.criteria).subscribe(count => {
       this.totalDefinitions = count;
       this.load();
     });
@@ -64,10 +57,7 @@ export class AdminClaimDefinitionsComponent implements OnInit {
 
   load() {
     this.loading = true;
-    const misleading = this.filterMisleading === '' ? undefined : this.filterMisleading === 'true';
-    const type = this.filterType || undefined;
-    this.criteria.search = this.filterText || undefined;
-    this.productService.getClaimDefinitions(misleading, type, this.criteria).subscribe(defs => {
+    this.productService.getClaimDefinitions(this.criteria).subscribe(defs => {
       this.definitions = defs;
       this.loading = false;
     });

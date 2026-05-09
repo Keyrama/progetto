@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subscription, skip } from 'rxjs';
-import { ProductDTO, ProductCategoryDTO, ProductFilter } from '../../models/product.model';
+import { ProductDTO, ProductCategoryDTO } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
@@ -37,7 +37,6 @@ export class AdminCatalogueComponent implements OnInit, OnDestroy {
 
   criteria = new ProductCriteria(0, 5);
   totalProducts = 0;
-  currentFilter: ProductFilter = {};
 
   // Category form
   showCategoryForm = false;
@@ -93,7 +92,7 @@ export class AdminCatalogueComponent implements OnInit, OnDestroy {
   // ── Products ──────────────────────────────────────────────────────────────
 
   loadCount() {
-    this.productService.getProductsCount(this.currentFilter).subscribe(count => {
+    this.productService.getProductsCount(this.criteria).subscribe(count => {
       this.totalProducts = count;
       this.load();
     });
@@ -101,7 +100,7 @@ export class AdminCatalogueComponent implements OnInit, OnDestroy {
 
   load() {
     this.loading = true;
-    this.productService.getProducts(this.currentFilter, this.criteria).subscribe(products => {
+    this.productService.getProducts(this.criteria).subscribe(products => {
       this.products = products;
       this.loading = false;
     });

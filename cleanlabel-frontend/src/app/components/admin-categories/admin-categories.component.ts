@@ -27,7 +27,7 @@ export class AdminCategoriesComponent implements OnInit {
   ngOnInit() { this.loadCount(); }
 
   loadCount() {
-    this.productService.getCategoriesCount().subscribe(count => {
+    this.productService.getCategoriesCount(this.criteria).subscribe(count => {
       this.totalCategories = count;
       this.load();
     });

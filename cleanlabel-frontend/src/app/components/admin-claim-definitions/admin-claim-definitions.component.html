@@ -11,12 +11,14 @@
   <!-- Filtri -->
   <div class="p-2 border-bottom d-flex gap-2 flex-wrap">
     <input type="text" class="form-control form-control-sm" style="max-width:220px;"
-           placeholder="Cerca per termine…" [(ngModel)]="filterText" (input)="applyFilters()" />
-    <select class="form-select form-select-sm" style="max-width:160px;" [(ngModel)]="filterType" (change)="applyFilters()">
-      <option value="">Tutti i tipi</option>
+           placeholder="Cerca per termine…" [(ngModel)]="criteria.search" (input)="applyFilters()" />
+    <select class="form-select form-select-sm" style="max-width:160px;" [(ngModel)]="criteria.type" (change)="applyFilters()">
+      <option [ngValue]="undefined">Tutti i tipi</option>
       <option *ngFor="let t of claimTypes" [value]="t">{{ t }}</option>
     </select>
-    <select class="form-select form-select-sm" style="max-width:160px;" [(ngModel)]="filterMisleading" (change)="applyFilters()">
+    <select class="form-select form-select-sm" style="max-width:160px;"
+            [ngModel]="criteria.misleading == null ? '' : criteria.misleading.toString()"
+            (ngModelChange)="criteria.misleading = $event === '' ? undefined : $event === 'true'; applyFilters()">
       <option value="">Tutti</option>
       <option value="true">Solo fuorvianti</option>
       <option value="false">Solo corretti</option>
@@ -75,7 +77,7 @@
       </tr>
       <tr *ngIf="filtered.length === 0">
         <td colspan="6" class="text-center text-muted py-3">
-          {{ filterText || filterType || filterMisleading ? 'Nessun risultato.' : 'Nessun claim nella libreria.' }}
+          {{ criteria.search || criteria.type || criteria.misleading != null ? 'Nessun risultato.' : 'Nessun claim nella libreria.' }}
         </td>
       </tr>
       </tbody>

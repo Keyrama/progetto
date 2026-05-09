@@ -27,7 +27,6 @@ export class AdminIngredientsComponent implements OnInit {
 
   toastMsg = '';
   toastError = false;
-  filterText = '';
 
   criteria = new IngredientCriteria(0, 10);
   totalIngredients = 0;
@@ -40,7 +39,7 @@ export class AdminIngredientsComponent implements OnInit {
   }
 
   loadCount() {
-    this.productService.getIngredientsCount().subscribe(count => {
+    this.productService.getIngredientsCount(this.criteria).subscribe(count => {
       this.totalIngredients = count;
       this.load();
     });
@@ -62,7 +61,6 @@ export class AdminIngredientsComponent implements OnInit {
 
   applyFilters() {
     this.criteria.offset = 0;
-    this.criteria.search = this.filterText || undefined;
     this.loadCount();
   }
 

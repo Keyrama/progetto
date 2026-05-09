@@ -1,14 +1,15 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { ProductCategoryDTO, ProductFilter } from '../../models/product.model';
+import { ProductCategoryDTO } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
+import { ProductCriteria } from '../../services/filters/product-criteria';
 
 @Component({
   selector: 'app-product-filter',
   templateUrl: './product-filter.component.html',
 })
 export class ProductFilterComponent implements OnInit {
-  @Input() filter: ProductFilter = {};
-  @Output() filterChange = new EventEmitter<ProductFilter>();
+  @Input() criteria: ProductCriteria = new ProductCriteria();
+  @Output() criteriaChange = new EventEmitter<Partial<Pick<ProductCriteria, 'search' | 'category' | 'cleanLabel'>>>();
   @Output() reset = new EventEmitter<void>();
 
   categories: ProductCategoryDTO[] = [];
@@ -20,22 +21,18 @@ export class ProductFilterComponent implements OnInit {
   }
 
   onSearchChange(value: string) {
-    this.filter = { ...this.filter, search: value || undefined };
-    this.filterChange.emit(this.filter);
+    this.criteriaChange.emit({ search: value || undefined });
   }
 
   onCategoryChange(id: number | undefined) {
-    this.filter = { ...this.filter, category: id };
-    this.filterChange.emit(this.filter);
+    this.criteriaChange.emit({ category: id });
   }
 
   onCleanLabelChange(value: boolean) {
-    this.filter = { ...this.filter, cleanLabel: value || undefined };
-    this.filterChange.emit(this.filter);
+    this.criteriaChange.emit({ cleanLabel: value || undefined });
   }
 
   onReset() {
-    this.filter = {};
     this.reset.emit();
   }
 }

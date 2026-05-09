@@ -120,14 +120,6 @@ export interface AlternativeSuggestionDTO {
   reason: string;
 }
 
-// ── Filter (client-side) ──────────────────────────────────────────────────────
-
-export interface ProductFilter {
-  search?: string;
-  category?: number;
-  cleanLabel?: boolean;
-}
-
 // ── Claim analysis request ────────────────────────────────────────────────────
 
 export interface ClaimAnalysisRequestDTO {

@@ -6,7 +6,7 @@ import {
   ProductDTO, ProductCategoryDTO, IngredientDTO,
   AllergenDTO, AlternativeSuggestionDTO,
   ProductClaimDTO, ClaimAnalysisRequestDTO,
-  ClaimDefinitionDTO, ProductFilter
+  ClaimDefinitionDTO
 } from '../models/product.model';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
@@ -23,20 +23,17 @@ export class ProductService {
 
   // ── Products ──────────────────────────────────────────────────────────────
 
-  getProducts(filter: ProductFilter = {}, criteria?: ProductCriteria): Observable<ProductDTO[]> {
-    let params = criteria ? criteria.toParams() : new HttpParams();
-    if (filter.search)     params = params.set('search', filter.search);
-    if (filter.category)   params = params.set('category', filter.category.toString());
-    if (filter.cleanLabel) params = params.set('cleanLabel', 'true');
-    return this.http.get<ProductDTO[]>(`${this.api}/products`, { params })
+  getProducts(criteria: ProductCriteria = new ProductCriteria()): Observable<ProductDTO[]> {
+    return this.http.get<ProductDTO[]>(`${this.api}/products`, { params: criteria.toParams() })
       .pipe(catchError(() => of([])));
   }
 
-  getProductsCount(filter: ProductFilter = {}): Observable<number> {
+  getProductsCount(criteria: ProductCriteria = new ProductCriteria()): Observable<number> {
+    // Count uses the same filters but no pagination params
     let params = new HttpParams();
-    if (filter.search)     params = params.set('search', filter.search);
-    if (filter.category)   params = params.set('category', filter.category.toString());
-    if (filter.cleanLabel) params = params.set('cleanLabel', 'true');
+    if (criteria.search)              params = params.set('search', criteria.search);
+    if (criteria.category != null)    params = params.set('category', criteria.category.toString());
+    if (criteria.cleanLabel === true) params = params.set('cleanLabel', 'true');
     return this.http.get<number>(`${this.api}/products/count`, { params })
       .pipe(catchError(() => of(0)));
   }
@@ -65,14 +62,13 @@ export class ProductService {
 
   // ── Categories ────────────────────────────────────────────────────────────
 
-  getCategories(criteria?: CategoryCriteria): Observable<ProductCategoryDTO[]> {
-    const params = criteria ? criteria.toParams() : new HttpParams();
-    return this.http.get<ProductCategoryDTO[]>(`${this.api}/categories`, { params })
+  getCategories(criteria: CategoryCriteria = new CategoryCriteria()): Observable<ProductCategoryDTO[]> {
+    return this.http.get<ProductCategoryDTO[]>(`${this.api}/categories`, { params: criteria.toParams() })
       .pipe(catchError(() => of([])));
   }
 
-  getCategoriesCount(): Observable<number> {
-    return this.http.get<number>(`${this.api}/categories/count`)
+  getCategoriesCount(criteria: CategoryCriteria = new CategoryCriteria()): Observable<number> {
+    return this.http.get<number>(`${this.api}/categories/count`, { params: criteria.toParams() })
       .pipe(catchError(() => of(0)));
   }
 
@@ -96,14 +92,18 @@ export class ProductService {
 
   // ── Ingredients ───────────────────────────────────────────────────────────
 
-  getIngredients(criteria?: IngredientCriteria): Observable<IngredientDTO[]> {
-    const params = criteria ? criteria.toParams() : new HttpParams();
-    return this.http.get<IngredientDTO[]>(`${this.api}/ingredients`, { params })
+  getIngredients(criteria: IngredientCriteria = new IngredientCriteria()): Observable<IngredientDTO[]> {
+    return this.http.get<IngredientDTO[]>(`${this.api}/ingredients`, { params: criteria.toParams() })
       .pipe(catchError(() => of([])));
   }
 
-  getIngredientsCount(): Observable<number> {
-    return this.http.get<number>(`${this.api}/ingredients/count`)
+  getIngredientsCount(criteria: IngredientCriteria = new IngredientCriteria()): Observable<number> {
+    // Count uses same filters but no pagination
+    let params = new HttpParams();
+    if (criteria.search)              params = params.set('search', criteria.search);
+    if (criteria.artificial != null)  params = params.set('artificial', criteria.artificial.toString());
+    if (criteria.riskLevel)           params = params.set('riskLevel', criteria.riskLevel);
+    return this.http.get<number>(`${this.api}/ingredients/count`, { params })
       .pipe(catchError(() => of(0)));
   }
 
@@ -162,19 +162,17 @@ export class ProductService {
 
   // ── Claim definitions library ─────────────────────────────────────────────
 
-  getClaimDefinitions(misleading?: boolean, type?: string, criteria?: ClaimDefinitionCriteria): Observable<ClaimDefinitionDTO[]> {
-    let params = criteria ? criteria.toParams() : new HttpParams();
-    if (misleading != null) params = params.set('misleading', misleading.toString());
-    if (type)               params = params.set('type', type);
-    return this.http.get<ClaimDefinitionDTO[]>(`${this.api}/claims/definitions`, { params })
+  getClaimDefinitions(criteria: ClaimDefinitionCriteria = new ClaimDefinitionCriteria()): Observable<ClaimDefinitionDTO[]> {
+    return this.http.get<ClaimDefinitionDTO[]>(`${this.api}/claims/definitions`, { params: criteria.toParams() })
       .pipe(catchError(() => of([])));
   }
 
-  getClaimDefinitionsCount(misleading?: boolean, type?: string, search?: string): Observable<number> {
+  getClaimDefinitionsCount(criteria: ClaimDefinitionCriteria = new ClaimDefinitionCriteria()): Observable<number> {
+    // Count uses same filters but no pagination
     let params = new HttpParams();
-    if (misleading != null) params = params.set('misleading', misleading.toString());
-    if (type)               params = params.set('type', type);
-    if (search)             params = params.set('search', search);
+    if (criteria.search)              params = params.set('search', criteria.search);
+    if (criteria.misleading != null)  params = params.set('misleading', criteria.misleading.toString());
+    if (criteria.type)                params = params.set('type', criteria.type);
     return this.http.get<number>(`${this.api}/claims/definitions/count`, { params })
       .pipe(catchError(() => of(0)));
   }

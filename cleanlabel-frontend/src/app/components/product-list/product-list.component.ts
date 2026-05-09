@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
-import { ProductDTO, ProductFilter } from '../../models/product.model';
+import { debounceTime, switchMap, takeUntil } from 'rxjs/operators';
+import { ProductDTO } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import { ProductCriteria } from '../../services/filters/product-criteria';
 
@@ -12,7 +12,6 @@ import { ProductCriteria } from '../../services/filters/product-criteria';
 })
 export class ProductListComponent implements OnInit, OnDestroy {
   products: ProductDTO[] = [];
-  filter: ProductFilter = {};
   loading = false;
 
   criteria = new ProductCriteria(0, 6);
@@ -20,7 +19,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
   totalPages = 0;
   currentPage = 0;
 
-  private filter$ = new Subject<ProductFilter>();
+  private filter$ = new Subject<ProductCriteria>();
   private destroy$ = new Subject<void>();
 
   constructor(private productService: ProductService, private router: Router) {}
@@ -28,12 +27,9 @@ export class ProductListComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.filter$.pipe(
       debounceTime(300),
-      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
-      switchMap(f => {
+      switchMap(c => {
         this.loading = true;
-        this.criteria.offset = 0;
-        this.currentPage = 0;
-        return this.productService.getProductsCount(f);
+        return this.productService.getProductsCount(c);
       }),
       takeUntil(this.destroy$)
     ).subscribe(count => {
@@ -42,19 +38,25 @@ export class ProductListComponent implements OnInit, OnDestroy {
       this.loadPage();
     });
 
-    this.filter$.next(this.filter);
+    this.emitFilter();
   }
 
   ngOnDestroy() { this.destroy$.next(); this.destroy$.complete(); }
 
-  onFilterChange(f: ProductFilter) {
-    this.filter = { ...f };
-    this.filter$.next(this.filter);
+  onFilterChange(patch: Partial<Pick<ProductCriteria, 'search' | 'category' | 'cleanLabel'>>) {
+    Object.assign(this.criteria, patch);
+    this.criteria.offset = 0;
+    this.currentPage = 0;
+    this.emitFilter();
   }
 
   onResetFilter() {
-    this.filter = {};
-    this.filter$.next(this.filter);
+    this.criteria.search = undefined;
+    this.criteria.category = undefined;
+    this.criteria.cleanLabel = undefined;
+    this.criteria.offset = 0;
+    this.currentPage = 0;
+    this.emitFilter();
   }
 
   goToPage(p: number) {
@@ -79,9 +81,15 @@ export class ProductListComponent implements OnInit, OnDestroy {
     return 'score-low';
   }
 
+  /** Emits a shallow clone so each emission is a distinct object reference. */
+  private emitFilter() {
+    const snapshot = Object.assign(new ProductCriteria(), this.criteria);
+    this.filter$.next(snapshot);
+  }
+
   private loadPage() {
     this.loading = true;
-    this.productService.getProducts(this.filter, this.criteria)
+    this.productService.getProducts(this.criteria)
       .pipe(takeUntil(this.destroy$))
       .subscribe(products => {
         this.products = products;

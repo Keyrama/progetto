@@ -4,8 +4,8 @@
     <!-- Sidebar filtri -->
     <div class="col-lg-3">
       <app-product-filter
-        [filter]="filter"
-        (filterChange)="onFilterChange($event)"
+        [criteria]="criteria"
+        (criteriaChange)="onFilterChange($event)"
         (reset)="onResetFilter()">
       </app-product-filter>
     </div>
