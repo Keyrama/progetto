@@ -7,6 +7,7 @@ import it.unifi.swam.cleanlabel.model.ProductCategory;
 import it.unifi.swam.cleanlabel.repository.ProductCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +25,7 @@ public class ProductCategoryService {
         if (limit != null && limit > 0) {
             int page = (offset != null ? offset : 0) / limit;
             return categoryMapper.toDTOList(
-                    categoryRepository.findAll(PageRequest.of(page, limit)).getContent());
+                    categoryRepository.findAll(PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "name"))).getContent());
         }
         return categoryMapper.toDTOList(categoryRepository.findAll());
     }

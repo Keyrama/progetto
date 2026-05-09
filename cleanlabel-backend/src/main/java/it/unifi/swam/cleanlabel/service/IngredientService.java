@@ -10,6 +10,7 @@ import it.unifi.swam.cleanlabel.repository.IngredientRepository;
 import it.unifi.swam.cleanlabel.repository.spec.IngredientSpecifications;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +34,7 @@ public class IngredientService {
         if (limit != null && limit > 0) {
             int page = (offset != null ? offset : 0) / limit;
             return ingredientMapper.toDTOList(
-                    ingredientRepository.findAll(spec, PageRequest.of(page, limit)).getContent());
+                    ingredientRepository.findAll(spec, PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "name"))).getContent());
         }
 
         return ingredientMapper.toDTOList(ingredientRepository.findAll(spec));

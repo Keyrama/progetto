@@ -8,6 +8,7 @@ import it.unifi.swam.cleanlabel.repository.ClaimDefinitionRepository;
 import it.unifi.swam.cleanlabel.repository.spec.ClaimDefinitionSpecifications;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +30,7 @@ public class ClaimDefinitionService {
         if (limit != null && limit > 0) {
             int page = (offset != null ? offset : 0) / limit;
             return claimDefinitionMapper.toDTOList(
-                    claimDefinitionRepository.findAll(spec, PageRequest.of(page, limit)).getContent());
+                    claimDefinitionRepository.findAll(spec, PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "term"))).getContent());
         }
 
         return claimDefinitionMapper.toDTOList(claimDefinitionRepository.findAll(spec));
