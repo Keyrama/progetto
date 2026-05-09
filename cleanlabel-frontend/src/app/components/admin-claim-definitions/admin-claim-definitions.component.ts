@@ -55,7 +55,8 @@ export class AdminClaimDefinitionsComponent implements OnInit {
   loadCount() {
     const misleading = this.filterMisleading === '' ? undefined : this.filterMisleading === 'true';
     const type = this.filterType || undefined;
-    this.productService.getClaimDefinitionsCount(misleading, type).subscribe(count => {
+    const search = this.filterText || undefined;
+    this.productService.getClaimDefinitionsCount(misleading, type, search).subscribe(count => {
       this.totalDefinitions = count;
       this.load();
     });
@@ -65,6 +66,7 @@ export class AdminClaimDefinitionsComponent implements OnInit {
     this.loading = true;
     const misleading = this.filterMisleading === '' ? undefined : this.filterMisleading === 'true';
     const type = this.filterType || undefined;
+    this.criteria.search = this.filterText || undefined;
     this.productService.getClaimDefinitions(misleading, type, this.criteria).subscribe(defs => {
       this.definitions = defs;
       this.loading = false;
@@ -83,9 +85,7 @@ export class AdminClaimDefinitionsComponent implements OnInit {
   }
 
   get filtered(): ClaimDefinitionDTO[] {
-    if (!this.filterText) return this.definitions;
-    const q = this.filterText.toLowerCase();
-    return this.definitions.filter(d => d.term.toLowerCase().includes(q));
+    return this.definitions;
   }
 
   openCreate() {

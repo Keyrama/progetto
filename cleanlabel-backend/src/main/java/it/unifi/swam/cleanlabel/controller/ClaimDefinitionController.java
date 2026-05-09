@@ -32,16 +32,18 @@ public class ClaimDefinitionController {
     public ResponseEntity<List<ClaimDefinitionDTO>> getAll(
             @RequestParam(required = false) Boolean misleading,
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) Integer limit,
             @RequestParam(required = false) Integer offset) {
-        return ResponseEntity.ok(claimDefinitionService.findAll(misleading, type, limit, offset));
+        return ResponseEntity.ok(claimDefinitionService.findAll(misleading, type, search, limit, offset));
     }
 
     @GetMapping("/count")
     public ResponseEntity<Long> count(
             @RequestParam(required = false) Boolean misleading,
-            @RequestParam(required = false) String type) {
-        return ResponseEntity.ok(claimDefinitionService.count(misleading, type));
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(claimDefinitionService.count(misleading, type, search));
     }
 
     @GetMapping("/{id}")

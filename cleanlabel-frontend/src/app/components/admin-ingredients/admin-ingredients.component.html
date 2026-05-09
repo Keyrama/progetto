@@ -10,7 +10,7 @@
   <div class="p-2 border-bottom">
     <input type="text" class="form-control form-control-sm"
            placeholder="Cerca per nome o E-number…"
-           [(ngModel)]="filterText" />
+           [(ngModel)]="filterText" (input)="applyFilters()" />
   </div>
 
   <!-- Loading -->

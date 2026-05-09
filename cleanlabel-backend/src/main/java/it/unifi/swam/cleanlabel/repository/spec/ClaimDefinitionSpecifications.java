@@ -14,4 +14,9 @@ public class ClaimDefinitionSpecifications {
     public static Specification<ClaimDefinition> hasClaimType(ClaimDefinition.ClaimType type) {
         return (root, cq, cb) -> cb.equal(root.get("claimType"), type);
     }
+
+    public static Specification<ClaimDefinition> termContains(String query) {
+        return (root, cq, cb) ->
+                cb.like(cb.lower(root.get("term")), "%" + query.toLowerCase() + "%");
+    }
 }

@@ -36,10 +36,10 @@ export abstract class PagedCriteria extends Criteria {
   public override toParams(): HttpParams {
     let options: HttpParams = super.toParams();
 
-    if (this.offset) {
+    if (this.offset != null) {
       options = options.append('offset', this.offset.toString());
     }
-    if (this.limit) {
+    if (this.limit != null) {
       options = options.append('limit', this.limit.toString());
     }
 

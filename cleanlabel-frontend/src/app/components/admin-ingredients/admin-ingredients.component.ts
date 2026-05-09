@@ -60,13 +60,14 @@ export class AdminIngredientsComponent implements OnInit {
     this.load();
   }
 
+  applyFilters() {
+    this.criteria.offset = 0;
+    this.criteria.search = this.filterText || undefined;
+    this.loadCount();
+  }
+
   get filtered(): IngredientDTO[] {
-    const q = this.filterText.toLowerCase();
-    if (!q) return this.ingredients;
-    return this.ingredients.filter(i =>
-      i.name.toLowerCase().includes(q) ||
-      (i.additiveCode ?? '').toLowerCase().includes(q)
-    );
+    return this.ingredients;
   }
 
   openCreate() {

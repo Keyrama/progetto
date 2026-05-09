@@ -170,10 +170,11 @@ export class ProductService {
       .pipe(catchError(() => of([])));
   }
 
-  getClaimDefinitionsCount(misleading?: boolean, type?: string): Observable<number> {
+  getClaimDefinitionsCount(misleading?: boolean, type?: string, search?: string): Observable<number> {
     let params = new HttpParams();
     if (misleading != null) params = params.set('misleading', misleading.toString());
     if (type)               params = params.set('type', type);
+    if (search)             params = params.set('search', search);
     return this.http.get<number>(`${this.api}/claims/definitions/count`, { params })
       .pipe(catchError(() => of(0)));
   }

@@ -11,7 +11,7 @@
   <!-- Filtri -->
   <div class="p-2 border-bottom d-flex gap-2 flex-wrap">
     <input type="text" class="form-control form-control-sm" style="max-width:220px;"
-           placeholder="Cerca per termine…" [(ngModel)]="filterText" />
+           placeholder="Cerca per termine…" [(ngModel)]="filterText" (input)="applyFilters()" />
     <select class="form-select form-select-sm" style="max-width:160px;" [(ngModel)]="filterType" (change)="applyFilters()">
       <option value="">Tutti i tipi</option>
       <option *ngFor="let t of claimTypes" [value]="t">{{ t }}</option>

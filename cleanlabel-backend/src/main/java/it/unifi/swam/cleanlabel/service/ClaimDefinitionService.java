@@ -22,9 +22,9 @@ public class ClaimDefinitionService {
     private final ClaimDefinitionRepository claimDefinitionRepository;
     private final ClaimDefinitionMapper claimDefinitionMapper;
 
-    public List<ClaimDefinitionDTO> findAll(Boolean misleading, String type,
+    public List<ClaimDefinitionDTO> findAll(Boolean misleading, String type, String search,
                                             Integer limit, Integer offset) {
-        Specification<ClaimDefinition> spec = buildSpec(misleading, type);
+        Specification<ClaimDefinition> spec = buildSpec(misleading, type, search);
 
         if (limit != null && limit > 0) {
             int page = (offset != null ? offset : 0) / limit;
@@ -35,16 +35,18 @@ public class ClaimDefinitionService {
         return claimDefinitionMapper.toDTOList(claimDefinitionRepository.findAll(spec));
     }
 
-    public long count(Boolean misleading, String type) {
-        return claimDefinitionRepository.count(buildSpec(misleading, type));
+    public long count(Boolean misleading, String type, String search) {
+        return claimDefinitionRepository.count(buildSpec(misleading, type, search));
     }
 
-    private Specification<ClaimDefinition> buildSpec(Boolean misleading, String type) {
+    private Specification<ClaimDefinition> buildSpec(Boolean misleading, String type, String search) {
         Specification<ClaimDefinition> spec = Specification.where(null);
         if (Boolean.TRUE.equals(misleading))
             spec = spec.and(ClaimDefinitionSpecifications.isMisleading());
         if (type != null)
             spec = spec.and(ClaimDefinitionSpecifications.hasClaimType(parseClaimType(type)));
+        if (search != null && !search.isBlank())
+            spec = spec.and(ClaimDefinitionSpecifications.termContains(search.trim()));
         return spec;
     }
 

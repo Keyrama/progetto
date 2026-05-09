@@ -81,9 +81,11 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   private loadPage() {
     this.loading = true;
-    this.productService.getProducts(this.filter, this.criteria).subscribe(products => {
-      this.products = products;
-      this.loading = false;
-    });
+    this.productService.getProducts(this.filter, this.criteria)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(products => {
+        this.products = products;
+        this.loading = false;
+      });
   }
 }

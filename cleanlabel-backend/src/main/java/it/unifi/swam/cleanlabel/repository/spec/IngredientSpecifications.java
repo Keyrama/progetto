@@ -14,4 +14,14 @@ public class IngredientSpecifications {
     public static Specification<Ingredient> hasRiskLevel(Ingredient.RiskLevel level) {
         return (root, cq, cb) -> cb.equal(root.get("riskLevel"), level);
     }
+
+    public static Specification<Ingredient> nameOrCodeContains(String query) {
+        return (root, cq, cb) -> {
+            String pattern = "%" + query.toLowerCase() + "%";
+            return cb.or(
+                    cb.like(cb.lower(root.get("name")), pattern),
+                    cb.like(cb.lower(root.get("additiveCode")), pattern)
+            );
+        };
+    }
 }

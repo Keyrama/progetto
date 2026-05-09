@@ -26,9 +26,9 @@ public class IngredientService {
     private final AllergenRepository allergenRepository;
     private final IngredientMapper ingredientMapper;
 
-    public List<IngredientDTO> findAll(Boolean artificial, String riskLevel,
+    public List<IngredientDTO> findAll(Boolean artificial, String riskLevel, String search,
                                        Integer limit, Integer offset) {
-        Specification<Ingredient> spec = buildSpec(artificial, riskLevel);
+        Specification<Ingredient> spec = buildSpec(artificial, riskLevel, search);
 
         if (limit != null && limit > 0) {
             int page = (offset != null ? offset : 0) / limit;
@@ -39,16 +39,18 @@ public class IngredientService {
         return ingredientMapper.toDTOList(ingredientRepository.findAll(spec));
     }
 
-    public long count(Boolean artificial, String riskLevel) {
-        return ingredientRepository.count(buildSpec(artificial, riskLevel));
+    public long count(Boolean artificial, String riskLevel, String search) {
+        return ingredientRepository.count(buildSpec(artificial, riskLevel, search));
     }
 
-    private Specification<Ingredient> buildSpec(Boolean artificial, String riskLevel) {
+    private Specification<Ingredient> buildSpec(Boolean artificial, String riskLevel, String search) {
         Specification<Ingredient> spec = Specification.where(null);
         if (Boolean.TRUE.equals(artificial))
             spec = spec.and(IngredientSpecifications.isArtificial());
         if (riskLevel != null)
             spec = spec.and(IngredientSpecifications.hasRiskLevel(parseRiskLevel(riskLevel)));
+        if (search != null && !search.isBlank())
+            spec = spec.and(IngredientSpecifications.nameOrCodeContains(search.trim()));
         return spec;
     }
 
