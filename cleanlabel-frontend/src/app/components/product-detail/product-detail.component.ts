@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription, switchMap, forkJoin} from 'rxjs';
+import { Subscription, switchMap, forkJoin, skip } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { ProductDTO, ProductClaimDTO, Verdict } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
@@ -24,6 +24,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   claimError = '';
 
   private routeSub!: Subscription;
+  private roleSub!: Subscription;
 
   constructor(
     private route: ActivatedRoute,
@@ -52,13 +53,27 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       })
     ).subscribe(({ product, claims }) => {
       this.product = product;
-      this.claims  = claims;
+      this.claims = this.canAnalyze ? claims : [];
       this.loading = false;
+    });
+
+    this.roleSub = this.auth.currentUser$.pipe(skip(1)).subscribe(() => {
+      if (!this.product?.id) return;
+      if (this.canAnalyze) {
+        this.productService.getClaims(this.product.id).subscribe(claims => {
+          this.claims = claims;
+        });
+      } else {
+        this.claims = [];
+        this.claimInput = '';
+        this.claimError = '';
+      }
     });
   }
 
   ngOnDestroy() {
     this.routeSub?.unsubscribe();
+    this.roleSub?.unsubscribe();
   }
 
   scoreClass(score: number | undefined): string {

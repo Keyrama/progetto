@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Subscription, skip } from 'rxjs';
 import { ProductDTO, ProductCategoryDTO, ProductFilter } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { ProductCriteria } from '../../services/filters/product-criteria';
+import { AdminClaimDefinitionsComponent } from '../admin-claim-definitions/admin-claim-definitions.component';
 
 @Component({
   selector: 'app-admin-catalogue',
@@ -12,6 +13,10 @@ import { ProductCriteria } from '../../services/filters/product-criteria';
   styleUrls: ['./admin-catalogue.component.scss'],
 })
 export class AdminCatalogueComponent implements OnInit, OnDestroy {
+
+  @ViewChild(AdminClaimDefinitionsComponent)
+  private claimDefinitionsRef?: AdminClaimDefinitionsComponent;
+
   readonly Math = Math;
 
   activeTab: 'products' | 'categories' | 'ingredients' | 'claims' = 'products';
@@ -53,9 +58,19 @@ export class AdminCatalogueComponent implements OnInit, OnDestroy {
       this.reloadCategories();
     }
 
-    this.userSub = this.auth.currentUser$.subscribe(user => {
+    this.userSub = this.auth.currentUser$.pipe(skip(1)).subscribe(user => {
       if (!user || (user.role !== 'CORPORATE' && user.role !== 'SPECIALIST')) {
         this.router.navigate(['/products']);
+        return;
+      }
+
+      if (user.role === 'SPECIALIST' && this.activeTab !== 'claims') {
+        this.activeTab = 'claims';
+        setTimeout(() => this.claimDefinitionsRef?.loadCount());
+      } else if (user.role === 'CORPORATE' && this.activeTab === 'claims') {
+        this.activeTab = 'products';
+        this.loadCount();
+        this.reloadCategories();
       }
     });
   }
