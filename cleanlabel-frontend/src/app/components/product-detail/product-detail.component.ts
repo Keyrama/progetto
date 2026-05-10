@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription, switchMap, forkJoin, skip } from 'rxjs';
+import {Subscription, switchMap, forkJoin, skip, of} from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { ProductDTO, ProductClaimDTO, Verdict } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
@@ -48,7 +48,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
         this.claimError = '';
         return forkJoin({
           product: this.productService.getProduct(id),
-          claims:  this.productService.getClaims(id),
+          claims:  this.canAnalyze ? this.productService.getClaims(id) : of([]),
         });
       })
     ).subscribe(({ product, claims }) => {

@@ -23,14 +23,14 @@ import java.util.List;
  * REST controller for Product resources.
  *
  * Role matrix:
- *   GET  /api/products              — open (all roles)
- *   GET  /api/products/{id}         — open (all roles)
- *   POST /api/products              — CORPORATE only
- *   PUT  /api/products/{id}         — CORPORATE only
- *   DELETE /api/products/{id}       — CORPORATE only
- *   POST .../claims/analyze         — SPECIALIST, CORPORATE
- *   GET  .../claims                 — open (all roles)
- *   GET  .../alternatives           — open (all roles)
+ *   GET  /api/products                   — open (all roles)
+ *   GET  /api/products/{id}              — open (all roles)
+ *   GET  /api/products/{id}/alternatives — open (all roles)
+ *   POST /api/products                   — CORPORATE only
+ *   PUT  /api/products/{id}              — CORPORATE only
+ *   DELETE /api/products/{id}            — CORPORATE only
+ *   GET  .../claims                      — SPECIALIST, CORPORATE
+ *   POST .../claims/analyze              — SPECIALIST, CORPORATE
  */
 @RestController
 @RequestMapping("/api/products")
@@ -67,23 +67,36 @@ public class ProductController {
         return ResponseEntity.ok(productService.findById(id));
     }
 
+    @GetMapping("/{id}/alternatives")
+    public ResponseEntity<List<AlternativeSuggestionDTO>> getAlternatives(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "5") int limit) {
+        return ResponseEntity.ok(alternativeSuggestionService.findAlternatives(id, limit));
+    }
+
+    // ── SPECIALIST + CORPORATE ─────────────────────────────────────────────────
+
     @GetMapping("/{id}/claims")
     public ResponseEntity<List<ProductClaimDTO>> getClaims(
             @PathVariable Long id,
-            @RequestParam(required = false) Boolean misleading) {
+            @RequestParam(required = false) Boolean misleading,
+            HttpServletRequest request) {
 
+        roleGuard.require(request, User.Role.SPECIALIST, User.Role.CORPORATE);
         List<ProductClaimDTO> claims = Boolean.TRUE.equals(misleading)
                 ? claimAnalysisService.getMisleadingClaims(id)
                 : claimAnalysisService.getClaimsByProduct(id);
         return ResponseEntity.ok(claims);
     }
 
-    @GetMapping("/{id}/alternatives")
-    public ResponseEntity<List<AlternativeSuggestionDTO>> getAlternatives(
+    @PostMapping("/{id}/claims/analyze")
+    public ResponseEntity<List<ProductClaimDTO>> analyzeClaims(
             @PathVariable Long id,
-            @RequestParam(defaultValue = "5") int limit) {
+            @Valid @RequestBody ClaimAnalysisRequestDTO request,
+            HttpServletRequest httpRequest) {
 
-        return ResponseEntity.ok(alternativeSuggestionService.findAlternatives(id, limit));
+        roleGuard.require(httpRequest, User.Role.SPECIALIST, User.Role.CORPORATE);
+        return ResponseEntity.ok(claimAnalysisService.analyzeClaims(id, request.getRawClaims()));
     }
 
     // ── CORPORATE only ─────────────────────────────────────────────────────────
@@ -118,18 +131,5 @@ public class ProductController {
         roleGuard.require(request, User.Role.CORPORATE);
         productService.delete(id);
         return ResponseEntity.noContent().build();
-    }
-
-    // ── SPECIALIST + CORPORATE ─────────────────────────────────────────────────
-
-    @PostMapping("/{id}/claims/analyze")
-    public ResponseEntity<List<ProductClaimDTO>> analyzeClaims(
-            @PathVariable Long id,
-            @Valid @RequestBody ClaimAnalysisRequestDTO request,
-            HttpServletRequest httpRequest) {
-
-        roleGuard.require(httpRequest, User.Role.SPECIALIST, User.Role.CORPORATE);
-        return ResponseEntity.ok(
-                claimAnalysisService.analyzeClaims(id, request.getRawClaims()));
     }
 }

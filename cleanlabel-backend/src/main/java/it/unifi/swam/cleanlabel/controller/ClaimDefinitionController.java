@@ -16,8 +16,8 @@ import java.util.List;
 
 /**
  * Role matrix:
- *   GET              — open (all roles — consumers need to read the library)
- *   POST / PUT       — SPECIALIST, CORPORATE (experts manage the claim library)
+ *   GET              — SPECIALIST, CORPORATE
+ *   POST / PUT       — SPECIALIST, CORPORATE
  *   DELETE           — CORPORATE only
  */
 @RestController
@@ -34,7 +34,10 @@ public class ClaimDefinitionController {
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Integer limit,
-            @RequestParam(required = false) Integer offset) {
+            @RequestParam(required = false) Integer offset,
+            HttpServletRequest request) {
+
+        roleGuard.require(request, User.Role.SPECIALIST, User.Role.CORPORATE);
         return ResponseEntity.ok(claimDefinitionService.findAll(misleading, type, search, limit, offset));
     }
 
@@ -42,12 +45,19 @@ public class ClaimDefinitionController {
     public ResponseEntity<Long> count(
             @RequestParam(required = false) Boolean misleading,
             @RequestParam(required = false) String type,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            HttpServletRequest request) {
+
+        roleGuard.require(request, User.Role.SPECIALIST, User.Role.CORPORATE);
         return ResponseEntity.ok(claimDefinitionService.count(misleading, type, search));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClaimDefinitionDTO> getById(@PathVariable Long id) {
+    public ResponseEntity<ClaimDefinitionDTO> getById(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+
+        roleGuard.require(request, User.Role.SPECIALIST, User.Role.CORPORATE);
         return ResponseEntity.ok(claimDefinitionService.findById(id));
     }
 
