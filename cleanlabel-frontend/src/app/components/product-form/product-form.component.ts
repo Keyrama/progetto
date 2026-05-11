@@ -17,7 +17,6 @@ export class ProductFormComponent implements OnInit {
   form!: FormGroup;
   saving = false;
 
-  // Available ingredients and allergens for multi-select
   availableIngredients: IngredientDTO[] = [];
   availableAllergens: AllergenDTO[] = [];
 
@@ -48,7 +47,6 @@ export class ProductFormComponent implements OnInit {
       }),
     });
 
-    // Pre-populate selected IDs from the product being edited
     if (this.product?.ingredientIds) {
       this.product.ingredientIds.forEach(id => this.selectedIngredientIds.add(id));
     }

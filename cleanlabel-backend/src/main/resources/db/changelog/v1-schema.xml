@@ -5,7 +5,6 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <!-- ── allergens ──────────────────────────────────────────────────────── -->
     <changeSet id="1-create-allergens" author="cleanlabel">
         <createTable tableName="allergens">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -21,7 +20,6 @@
         </createTable>
     </changeSet>
 
-    <!-- ── product_categories ─────────────────────────────────────────────── -->
     <changeSet id="2-create-product-categories" author="cleanlabel">
         <createTable tableName="product_categories">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -34,7 +32,6 @@
         </createTable>
     </changeSet>
 
-    <!-- ── nutritional_values ─────────────────────────────────────────────── -->
     <changeSet id="3-create-nutritional-values" author="cleanlabel">
         <createTable tableName="nutritional_values">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -65,7 +62,6 @@
         </createTable>
     </changeSet>
 
-    <!-- ── ingredients ────────────────────────────────────────────────────── -->
     <changeSet id="4-create-ingredients" author="cleanlabel">
         <createTable tableName="ingredients">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -85,7 +81,6 @@
         </createTable>
     </changeSet>
 
-    <!-- ── ingredient_allergens ───────────────────────────────────────────── -->
     <changeSet id="5-create-ingredient-allergens" author="cleanlabel">
         <createTable tableName="ingredient_allergens">
             <column name="ingredient_id" type="BIGINT">
@@ -109,7 +104,6 @@
                                  constraintName="fk_ingall_allergen"/>
     </changeSet>
 
-    <!-- ── products ───────────────────────────────────────────────────────── -->
     <changeSet id="6-create-products" author="cleanlabel">
         <createTable tableName="products">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -144,7 +138,6 @@
                                  constraintName="fk_product_nutritional_value"/>
     </changeSet>
 
-    <!-- ── product_ingredients ────────────────────────────────────────────── -->
     <changeSet id="7-create-product-ingredients" author="cleanlabel">
         <createTable tableName="product_ingredients">
             <column name="product_id" type="BIGINT">
@@ -168,7 +161,6 @@
                                  constraintName="fk_prodingr_ingredient"/>
     </changeSet>
 
-    <!-- ── product_may_contain_allergens ──────────────────────────────────── -->
     <changeSet id="8-create-product-may-contain-allergens" author="cleanlabel">
         <createTable tableName="product_may_contain_allergens">
             <column name="product_id" type="BIGINT">
@@ -192,7 +184,6 @@
                                  constraintName="fk_maycontain_allergen"/>
     </changeSet>
 
-    <!-- ── claim_definitions ──────────────────────────────────────────────── -->
     <changeSet id="9-create-claim-definitions" author="cleanlabel">
         <createTable tableName="claim_definitions">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -224,7 +215,6 @@
         </createTable>
     </changeSet>
 
-    <!-- ── product_claims ─────────────────────────────────────────────────── -->
     <changeSet id="10-create-product-claims" author="cleanlabel">
         <createTable tableName="product_claims">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -258,7 +248,6 @@
                                  constraintName="fk_claim_definition"/>
     </changeSet>
 
-    <!-- ── users ──────────────────────────────────────────────────────────── -->
     <changeSet id="11-create-users" author="cleanlabel">
         <createTable tableName="users">
             <column name="id" type="BIGINT" autoIncrement="true">

@@ -20,6 +20,5 @@ public class IngredientDTO {
 
     private Ingredient.RiskLevel riskLevel;
 
-    /** Allergens contained in this ingredient (derived, not input by user) */
     private List<AllergenDTO> allergens;
 }

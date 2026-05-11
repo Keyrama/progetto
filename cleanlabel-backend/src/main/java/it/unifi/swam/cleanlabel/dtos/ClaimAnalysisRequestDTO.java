@@ -5,9 +5,6 @@ import lombok.*;
 
 import java.util.List;
 
-/**
- * Payload for POST /api/products/{id}/claims/analyze
- */
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ClaimAnalysisRequestDTO {
     @NotEmpty

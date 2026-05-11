@@ -7,9 +7,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"       # host:container — espone il DB sulla tua macchina
+      - "5432:5432"
     volumes:
-      - cleanlabel_data:/var/lib/postgresql/data   # i dati sopravvivono al restart
+      - cleanlabel_data:/var/lib/postgresql/data
 
 volumes:
   cleanlabel_data:

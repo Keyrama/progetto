@@ -35,42 +35,25 @@ public class ProductDTO {
     @Size(max = 1000)
     private String description;
 
-    /** ID of the ProductCategory. Required on input; included in output. */
     private Long categoryId;
 
-    /** Category name — populated on output only */
     private String categoryName;
 
     @Valid
     private NutritionalValueDTO nutritionalValue;
 
-    /**
-     * Input: list of existing Ingredient IDs to associate.
-     * Output: full ingredient details.
-     * We use separate fields to avoid overloading one field with two types.
-     */
     private List<Long> ingredientIds;
     private List<IngredientDTO> ingredients;
 
-    /** Input: allergen IDs for "may contain traces of" */
     private List<Long> mayContainAllergenIds;
 
-    /** Output: full allergen details for "may contain traces of" */
     private List<AllergenDTO> mayContainAllergens;
 
     private Integer sustainabilityScore;
 
-    // ── Output-only (computed by the system) ─────────────────────────────────
-
-    /** Computed by HealthScoreService from nutritional values and ingredient risk */
     private Integer healthScore;
 
-    /** True if no artificial ingredients and no HIGH-risk additives */
     private boolean cleanLabel;
 
-    /**
-     * Allergens derived from the ingredient list (not "may contain").
-     * Computed at read time from ingredient.allergens — not stored separately.
-     */
     private List<AllergenDTO> declaredAllergens;
 }

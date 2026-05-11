@@ -14,16 +14,6 @@ import java.util.List;
         })
 public interface ProductMapper {
 
-    /**
-     * Full mapping for GET /products/{id} responses.
-     * - categoryId and categoryName are sourced from product.category
-     * - declaredAllergens comes from the @Transient helper on Product
-     * - ingredientIds are extracted from the ingredients list
-     * - mayContainAllergenIds are extracted from mayContainAllergens list
-     *
-     * Claims are NOT mapped here — they are retrieved separately via
-     * GET /api/products/{id}/claims and live outside the product lifecycle.
-     */
     @Mapping(target = "categoryId",   source = "category.id")
     @Mapping(target = "categoryName", source = "category.name")
     @Mapping(target = "declaredAllergens", expression = "java(allergenMapper.toDTOList(product.getDeclaredAllergens()))")
@@ -33,10 +23,6 @@ public interface ProductMapper {
 
     List<ProductDTO> toDTOList(List<Product> products);
 
-    /**
-     * Minimal mapping for list views (no ingredients detail).
-     * Useful for search results and alternatives — avoids N+1 queries.
-     */
     @Named("toSummaryDTO")
     @Mapping(target = "categoryId",            source = "category.id")
     @Mapping(target = "categoryName",          source = "category.name")
@@ -51,12 +37,6 @@ public interface ProductMapper {
     @IterableMapping(qualifiedByName = "toSummaryDTO")
     List<ProductDTO> toSummaryDTOList(List<Product> products);
 
-    /**
-     * Used by ProductService on create/update.
-     * Relationships (category, ingredients, mayContainAllergens) are resolved
-     * by the service from IDs — ignored here to avoid incomplete mappings.
-     * Computed fields (healthScore, cleanLabel) are also ignored.
-     */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "category",            ignore = true)
     @Mapping(target = "ingredients",         ignore = true)

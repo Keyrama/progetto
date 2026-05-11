@@ -14,8 +14,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   product: ProductDTO | null = null;
   loading = true;
 
-  // Claims live as independent session state — not inside product.
-  // Loaded from the backend on each product change, replaced on new analysis.
   claims: ProductClaimDTO[] = [];
   loadingClaims = false;
 
@@ -35,9 +33,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // paramMap observable reacts to ID changes without destroying the component.
-    // On each navigation, product and claims are both reset immediately,
-    // then reloaded in parallel via forkJoin to avoid sequential waterfalls.
     this.routeSub = this.route.paramMap.pipe(
       switchMap(params => {
         const id = Number(params.get('id'));
@@ -143,11 +138,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     return map[verdict] ?? verdict;
   }
 
-  /**
-   * Returns the formatted analyzedAt of the first claim.
-   * All claims in an analysis share the same timestamp (set in ClaimAnalysisService),
-   * so showing it once in the section header is correct.
-   */
   get lastAnalyzedAt(): string | null {
     if (!this.claims.length) return null;
     return this.datePipe.transform(this.claims[0].analyzedAt, 'dd/MM/yyyy HH:mm');

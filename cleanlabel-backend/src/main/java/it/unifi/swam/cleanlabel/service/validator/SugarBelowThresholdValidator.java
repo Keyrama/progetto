@@ -6,15 +6,9 @@ import it.unifi.swam.cleanlabel.model.Product;
 import it.unifi.swam.cleanlabel.model.ValidationResult;
 import org.springframework.stereotype.Component;
 
-/**
- * Validates claims like "sugar free", "no added sugars", "low sugar".
- * Checks product.nutritionalValue.sugars against the claim's validation threshold.
- * Threshold unit: g per 100g product (as per EU Reg. 1924/2006).
- */
 @Component
 public class SugarBelowThresholdValidator implements ClaimValidatorStrategy {
 
-    /** EU default for "sugar free": ≤ 0.5g/100g */
     private static final double DEFAULT_THRESHOLD = 0.5;
 
     @Override

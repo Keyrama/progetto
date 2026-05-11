@@ -6,9 +6,6 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-/**
- * Master entity for the 14 major allergens defined by EU Regulation No 1169/2011.
- */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,7 +21,6 @@ public class Allergen {
     @Column(nullable = false, unique = true, length = 100)
     private String name;
 
-    /** Official short code. E.g.: "GLUTEN", "MILK", "NUTS" */
     @Column(nullable = false, unique = true, length = 50)
     private String code;
 

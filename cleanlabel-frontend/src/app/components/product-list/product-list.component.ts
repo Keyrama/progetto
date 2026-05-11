@@ -81,7 +81,6 @@ export class ProductListComponent implements OnInit, OnDestroy {
     return 'score-low';
   }
 
-  /** Emits a shallow clone so each emission is a distinct object reference. */
   private emitFilter() {
     const snapshot = Object.assign(new ProductCriteria(), this.criteria);
     this.filter$.next(snapshot);

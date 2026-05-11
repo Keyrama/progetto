@@ -6,14 +6,6 @@ import it.unifi.swam.cleanlabel.model.Product;
 import it.unifi.swam.cleanlabel.model.ValidationResult;
 import org.springframework.stereotype.Component;
 
-/**
- * Validates claims like "high fibre" and "source of fibre".
- * Checks product.nutritionalValue.fiber against the claim's validation threshold.
- *
- * EU thresholds (Reg. 1924/2006):
- *   "source of fibre"  → fiber >= 3g/100g
- *   "high fibre"       → fiber >= 6g/100g
- */
 @Component
 public class HighFiberValidator implements ClaimValidatorStrategy {
 

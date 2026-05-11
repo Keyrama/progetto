@@ -31,14 +31,6 @@ public class ProductService {
     private final ProductMapper productMapper;
     private final HealthScoreService healthScoreService;
 
-    // ── Queries ───────────────────────────────────────────────────────────────
-
-    /**
-     * Returns products filtered by any combination of search, category, and
-     * cleanLabel. All active filters are applied simultaneously via JPA
-     * Specifications — unlike a simple if-else chain, multiple filters
-     * compose correctly (e.g. search + cleanLabel works as expected).
-     */
     public List<ProductDTO> findAll(String search, Long categoryId, Boolean cleanLabel,
                                     Integer limit, Integer offset) {
         Specification<Product> spec = buildSpec(search, categoryId, cleanLabel);
@@ -72,8 +64,6 @@ public class ProductService {
         return productMapper.toDTO(getProductOrThrow(id));
     }
 
-    // ── Mutations ─────────────────────────────────────────────────────────────
-
     @Transactional
     public ProductDTO create(ProductDTO dto) {
         Product product = new Product();
@@ -97,8 +87,6 @@ public class ProductService {
         getProductOrThrow(id);
         productRepository.deleteById(id);
     }
-
-    // ── Internal helpers ──────────────────────────────────────────────────────
 
     private void resolveAndSetRelationships(Product product, ProductDTO dto) {
         if (dto.getCategoryId() != null) {

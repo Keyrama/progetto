@@ -19,8 +19,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Orchestrates the two-phase claim analysis process:
- *
  * Phase 1 — Matching:
  *   Each raw claim string (from the product label) is looked up in the
  *   ClaimDefinition master library. If found (MATCHED), the definition tells us
@@ -32,10 +30,6 @@ import java.util.stream.Collectors;
  *   ClaimDefinition.validationStrategy and run against the product's actual
  *   ingredients and nutritional values. The result (CONFIRMED / CONTRADICTED /
  *   UNVERIFIABLE / INCOMPLETE_DATA) is stored in the embedded ValidationResult.
- *
- * Results are persisted as ProductClaim entities and replace any previous
- * analysis for the same product. Claims are NOT navigated through Product —
- * they are managed entirely through ProductClaimRepository.
  */
 @Service
 @Transactional(readOnly = true)
@@ -46,11 +40,6 @@ public class ClaimAnalysisService {
     private final ProductRepository productRepository;
     private final ProductClaimMapper productClaimMapper;
 
-    /**
-     * Map from ValidationStrategy enum → concrete validator bean.
-     * Spring injects all ClaimValidatorStrategy implementations and we index
-     * them by the strategy they support for O(1) lookup at runtime.
-     */
     private final Map<ClaimDefinition.ValidationStrategy, ClaimValidatorStrategy> validators;
 
     public ClaimAnalysisService(
@@ -71,14 +60,8 @@ public class ClaimAnalysisService {
                 ));
     }
 
-    // ── Public API ────────────────────────────────────────────────────────────
 
     /**
-     * Analyzes a list of raw claim strings for a product.
-     * Duplicates in the input are silently removed to avoid unique constraint
-     * violations on (product_id, claim_definition_id).
-     * Any previous analysis for the same product is replaced entirely.
-     *
      * @param productId ID of the product whose label claims are being analyzed
      * @param rawClaims list of claim strings exactly as they appear on the label
      * @return          list of ProductClaimDTO with full analysis results
@@ -88,13 +71,8 @@ public class ClaimAnalysisService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", productId));
 
-        // Remove previous analysis — analysis is always a full replacement.
-        // Done via repository, not through product.getClaims(), since the
-        // OneToMany is intentionally absent from Product.
         productClaimRepository.deleteByProductId(productId);
 
-        // Deduplicate to avoid unique constraint violations on
-        // (product_id, claim_definition_id) when the same term appears twice.
         List<String> deduplicated = rawClaims.stream()
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
@@ -110,27 +88,18 @@ public class ClaimAnalysisService {
         return productClaimMapper.toDTOList(results);
     }
 
-    /**
-     * Returns all persisted claim analysis results for a product.
-     */
     public List<ProductClaimDTO> getClaimsByProduct(Long productId) {
         ensureProductExists(productId);
         return productClaimMapper.toDTOList(
                 productClaimRepository.findByProductId(productId));
     }
 
-    /**
-     * Returns only the claims flagged as misleading in the library.
-     * A claim is misleading when its ClaimDefinition has misleading=true,
-     * regardless of the dynamic validation verdict.
-     */
     public List<ProductClaimDTO> getMisleadingClaims(Long productId) {
         ensureProductExists(productId);
         return productClaimMapper.toDTOList(
                 productClaimRepository.findMisleadingByProductId(productId));
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
 
     private ProductClaim buildProductClaim(Product product, String rawLabel) {
         ProductClaim pc = new ProductClaim();
@@ -164,11 +133,6 @@ public class ClaimAnalysisService {
         return pc;
     }
 
-    /**
-     * Resolves the correct validator for a claim definition.
-     * Falls back to NONE strategy if no specific validator is registered,
-     * which should never happen if all enum values have a corresponding bean.
-     */
     private ClaimValidatorStrategy resolveValidator(ClaimDefinition def) {
         return validators.getOrDefault(
                 def.getValidationStrategy(),

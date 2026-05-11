@@ -204,8 +204,6 @@
   <app-product-alternatives [productId]="product.id!"></app-product-alternatives>
 </div>
 
-<!-- Loading and empty state — unified to ensure product content
-     is fully destroyed from the DOM while the next product loads -->
 <ng-template #loadingTpl>
   <div class="container py-5 text-center" *ngIf="loading">
     <div class="spinner-border text-success"></div>

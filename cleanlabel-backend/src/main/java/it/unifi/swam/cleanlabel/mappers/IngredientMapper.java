@@ -13,10 +13,6 @@ public interface IngredientMapper {
 
     List<IngredientDTO> toDTOList(List<Ingredient> ingredients);
 
-    /**
-     * Maps DTO to entity. Allergen IDs are resolved by IngredientService,
-     * so the allergens list on the DTO is ignored during entity creation.
-     */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "allergens", ignore = true)
     Ingredient toEntity(IngredientDTO dto);

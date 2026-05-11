@@ -11,6 +11,5 @@ import java.util.Optional;
 public interface ClaimDefinitionRepository extends JpaRepository<ClaimDefinition, Long>,
         JpaSpecificationExecutor<ClaimDefinition> {
 
-    // Used by ClaimAnalysisService to match raw label text against the library
     Optional<ClaimDefinition> findByTermIgnoreCase(String term);
 }

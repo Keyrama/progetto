@@ -1,10 +1,3 @@
--- ============================================================
--- Seed data for Clean Label Web Application
--- Runs at boot after Hibernate creates the schema.
--- Uses INSERT ... ON CONFLICT DO NOTHING to be idempotent.
--- ============================================================
-
--- ── 14 Major Allergens (EU Reg. No 1169/2011) ────────────────────────────────
 
 INSERT INTO allergens (name, code, description) VALUES
                                                     ('Glutine',              'GLUTINE',              'Presente in frumento, segale, orzo, avena e loro derivati.'),
@@ -23,10 +16,8 @@ INSERT INTO allergens (name, code, description) VALUES
                                                     ('Molluschi',            'MOLLUSCHI',            'Molluschi e prodotti derivati dai molluschi.')
     ON CONFLICT (code) DO NOTHING;
 
--- ── Ingredients ───────────────────────────────────────────────────────────────
 
 INSERT INTO ingredients (name, additive_code, description, is_artificial, risk_level) VALUES
--- Naturali LOW risk
 ('Farina di frumento integrale',  NULL,    'Farina ottenuta dalla macinazione integrale del grano.',                                    false, 'LOW'),
 ('Avena',                         NULL,    'Fiocchi di avena interi, ricchi di fibre solubili (beta-glucano).',                          false, 'LOW'),
 ('Miele',                         NULL,    'Dolcificante naturale ottenuto dalle api.',                                                  false, 'LOW'),
@@ -42,26 +33,24 @@ INSERT INTO ingredients (name, additive_code, description, is_artificial, risk_l
 ('Aceto di vino',                 NULL,    'Condimento ottenuto dalla fermentazione acetica del vino.',                                 false, 'LOW'),
 ('Pomodoro',                      NULL,    'Pomodoro fresco o in polpa, fonte di licopene.',                                            false, 'LOW'),
 ('Basilico',                      NULL,    'Erba aromatica fresca o essiccata.',                                                        false, 'LOW'),
--- Naturali MEDIUM risk
+
 ('Zucchero',                      NULL,    'Saccarosio raffinato, apporta calorie vuote senza micronutrienti.',                         false, 'MEDIUM'),
 ('Sciroppo di glucosio',          NULL,    'Dolcificante derivato dall''idrolisi dell''amido, ad alto indice glicemico.',               false, 'MEDIUM'),
 ('Olio di palma',                 NULL,    'Olio vegetale ricco di acidi grassi saturi, controverso per salute e ambiente.',            false, 'MEDIUM'),
 ('Sale',                          NULL,    'Cloruro di sodio raffinato, associato a ipertensione se consumato in eccesso.',             false, 'MEDIUM'),
 ('Farina di frumento raffinata',  NULL,    'Farina bianca priva di crusca e germe, povera di fibre.',                                  false, 'MEDIUM'),
 ('Lievito chimico',               NULL,    'Agente lievitante naturale composto da bicarbonato e acido tartarico.',                     false, 'MEDIUM'),
--- Artificiali MEDIUM risk
+
 ('Lecitina di soia',              'E322',  'Emulsionante estratto dalla soia, generalmente sicuro ma di origine industriale.',          true,  'MEDIUM'),
 ('Acido citrico',                 'E330',  'Acidificante di sintesi, generalmente riconosciuto sicuro (GRAS).',                         true,  'MEDIUM'),
 ('Acido ascorbico',               'E300',  'Vitamina C sintetica usata come antiossidante e conservante.',                              true,  'MEDIUM'),
--- Artificiali HIGH risk
+
 ('Nitrito di sodio',              'E250',  'Conservante usato nei salumi: prolunga la shelf life ma correlato a rischi cancerogeni.',   true,  'HIGH'),
 ('Benzoato di sodio',             'E211',  'Conservante chimico attivo contro muffe e batteri, correlato a iperattività nei bambini.',  true,  'HIGH'),
 ('Aspartame',                     'E951',  'Dolcificante sintetico molto intenso, controverso per possibili effetti neurologici.',      true,  'HIGH'),
 ('Colorante rosso cocciniglia',   'E120',  'Colorante di origine animale, può causare reazioni allergiche.',                            true,  'HIGH'),
 ('Glutammato monosodico',         'E621',  'Esaltatore di sapidità artificiale, può causare sintomi nei soggetti sensibili.',           true,  'HIGH'),
 ('Carragenina',                   'E407',  'Addensante estratto dalle alghe rosse, correlato a infiammazioni intestinali.',             true,  'HIGH');
-
--- ── Associazioni ingredienti-allergeni ────────────────────────────────────────
 
 INSERT INTO ingredient_allergens (ingredient_id, allergen_id)
 SELECT i.id, a.id FROM ingredients i, allergens a
@@ -91,8 +80,6 @@ INSERT INTO ingredient_allergens (ingredient_id, allergen_id)
 SELECT i.id, a.id FROM ingredients i, allergens a
 WHERE i.name = 'Lecitina di soia' AND a.code = 'SOIA';
 
--- ── Product Categories ────────────────────────────────────────────────────────
-
 INSERT INTO product_categories (name, description) VALUES
                                                        ('Cereali e colazione',       'Cereali, muesli, granola e prodotti per la colazione'),
                                                        ('Snack e patatine',          'Patatine, cracker, popcorn e snack salati'),
@@ -103,8 +90,6 @@ INSERT INTO product_categories (name, description) VALUES
                                                        ('Condimenti e salse',        'Ketchup, maionese, pesto e condimenti vari'),
                                                        ('Pane e prodotti da forno',  'Pane, grissini, crackers e prodotti da forno')
     ON CONFLICT (name) DO NOTHING;
-
--- ── Claim Definitions Library ─────────────────────────────────────────────────
 
 INSERT INTO claim_definitions
 (term, claim_type, is_regulated, is_misleading, misleading_reason,
@@ -176,47 +161,30 @@ VALUES
      'EU Reg. 1924/2006, Art. 13', 'NONE', NULL)
     ON CONFLICT (term) DO NOTHING;
 
--- ── Valori nutrizionali ───────────────────────────────────────────────────────
--- (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber)
-
--- Cereali e colazione
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES (380, 12.0, 62.0,  8.0,  7.0,  1.2, 0.3,  9.5); -- Muesli Bio
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES (420,  6.0, 78.0, 28.0,  8.0,  3.5, 0.8,  2.0); -- Corn Flakes
 
--- Snack e patatine
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES (450,  6.0, 58.0,  1.5, 22.0,  2.0, 1.2,  4.0); -- Chips Oliva
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES (530,  5.5, 55.0,  2.0, 32.0, 14.0, 2.1,  1.5); -- Patatine Palma
 
--- Bevande
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES ( 20,  0.5,  4.5,  4.0,  0.0,  0.0, 0.05, 0.5); -- Succo Arancia
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES ( 42,  0.0, 10.6, 10.6,  0.0,  0.0, 0.02, 0.0); -- Energy Drink
 
--- Latticini
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES ( 65,  5.5,  4.5,  4.5,  2.0,  1.3, 0.1,  0.0); -- Yogurt Bianco
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES (120,  3.5, 18.0, 16.5,  3.5,  2.3, 0.15, 0.0); -- Yogurt Frutti
 
--- Dolci e biscotti
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES (410,  8.0, 58.0, 12.0, 16.0,  3.5, 0.4,  5.0); -- Biscotti Avena
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES (490,  5.5, 65.0, 38.0, 22.0, 11.0, 0.6,  1.0); -- Merendine Cacao
 
--- Salumi e affettati
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES (157, 29.0,  0.0,  0.0,  4.0,  1.2, 2.5,  0.0); -- Bresaola
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES (310, 18.0,  2.0,  1.0, 26.0,  9.5, 3.2,  0.0); -- Salame
 
--- Condimenti e salse
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES (130,  2.5,  8.0,  6.5, 10.0,  1.5, 1.2,  2.0); -- Pesto
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES (105,  1.5, 25.0, 22.0,  0.5,  0.1, 2.8,  0.5); -- Ketchup
 
--- Pane e prodotti da forno
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES (230,  9.0, 44.0,  2.0,  2.0,  0.3, 0.9,  6.5); -- Pane Integrale
 INSERT INTO nutritional_values (calories, proteins, carbohydrates, sugars, fats, saturated_fats, salt, fiber) VALUES (280,  8.0, 56.0,  4.5,  3.5,  0.8, 1.5,  1.5); -- Pane Bianco
 
--- ── Prodotti ──────────────────────────────────────────────────────────────────
--- Ogni coppia: prodotto migliore (health_score alto, clean_label true)
--- e prodotto peggiore (health_score basso, clean_label false).
--- AlternativeSuggestionService suggerisce il migliore quando si apre il peggiore.
-
--- Cereali e colazione
 INSERT INTO products (name, brand, description, health_score, sustainability_score, is_clean_label, category_id, nutritional_value_id)
 SELECT 'Muesli Integrale Bio', 'GranoVerde',
        'Muesli con fiocchi di avena integrali e miele, senza zuccheri aggiunti.',
@@ -233,7 +201,6 @@ FROM product_categories c, nutritional_values n
 WHERE c.name = 'Cereali e colazione'
   AND n.calories = 420 AND n.proteins = 6.0 AND n.fiber = 2.0;
 
--- Snack e patatine
 INSERT INTO products (name, brand, description, health_score, sustainability_score, is_clean_label, category_id, nutritional_value_id)
 SELECT 'Chips Olio di Oliva', 'NaturSnack',
        'Patatine cotte in olio extravergine di oliva, senza aromi artificiali.',
@@ -250,7 +217,6 @@ FROM product_categories c, nutritional_values n
 WHERE c.name = 'Snack e patatine'
   AND n.calories = 530 AND n.fats = 32.0;
 
--- Bevande
 INSERT INTO products (name, brand, description, health_score, sustainability_score, is_clean_label, category_id, nutritional_value_id)
 SELECT 'Succo di Arancia 100%', 'FruttaBio',
        'Succo di arancia puro senza zuccheri aggiunti né conservanti.',
@@ -267,7 +233,6 @@ FROM product_categories c, nutritional_values n
 WHERE c.name = 'Bevande'
   AND n.calories = 42 AND n.sugars = 10.6;
 
--- Latticini
 INSERT INTO products (name, brand, description, health_score, sustainability_score, is_clean_label, category_id, nutritional_value_id)
 SELECT 'Yogurt Bianco Intero', 'MonteLatte',
        'Yogurt intero con fermenti lattici vivi, senza zuccheri aggiunti.',
@@ -284,7 +249,6 @@ FROM product_categories c, nutritional_values n
 WHERE c.name = 'Latticini'
   AND n.calories = 120 AND n.sugars = 16.5;
 
--- Dolci e biscotti
 INSERT INTO products (name, brand, description, health_score, sustainability_score, is_clean_label, category_id, nutritional_value_id)
 SELECT 'Biscotti Avena e Miele', 'NaturDolce',
        'Biscotti integrali con avena, miele e olio di oliva. Senza conservanti.',
@@ -301,7 +265,6 @@ FROM product_categories c, nutritional_values n
 WHERE c.name = 'Dolci e biscotti'
   AND n.calories = 490 AND n.fiber = 1.0;
 
--- Salumi e affettati
 INSERT INTO products (name, brand, description, health_score, sustainability_score, is_clean_label, category_id, nutritional_value_id)
 SELECT 'Bresaola Valtellinese IGP', 'AlpiSalumi',
        'Bresaola di manzo stagionata senza nitriti aggiunti, magra e proteica.',
@@ -318,7 +281,6 @@ FROM product_categories c, nutritional_values n
 WHERE c.name = 'Salumi e affettati'
   AND n.calories = 310 AND n.proteins = 18.0;
 
--- Condimenti e salse
 INSERT INTO products (name, brand, description, health_score, sustainability_score, is_clean_label, category_id, nutritional_value_id)
 SELECT 'Pesto Genovese DOP', 'LiguriaGusto',
        'Pesto tradizionale con basilico DOP, olio EVO e parmigiano. Senza conservanti.',
@@ -335,7 +297,6 @@ FROM product_categories c, nutritional_values n
 WHERE c.name = 'Condimenti e salse'
   AND n.calories = 105 AND n.sugars = 22.0;
 
--- Pane e prodotti da forno
 INSERT INTO products (name, brand, description, health_score, sustainability_score, is_clean_label, category_id, nutritional_value_id)
 SELECT 'Pane Integrale al Farro', 'FornoAntico',
        'Pane con farina di farro integrale, lievito madre e sale marino.',
@@ -351,8 +312,6 @@ SELECT 'Pane Bianco in Cassetta', 'PanSoft',
 FROM product_categories c, nutritional_values n
 WHERE c.name = 'Pane e prodotti da forno'
   AND n.calories = 280 AND n.fiber = 1.5;
-
--- ── Ingredienti per prodotto ──────────────────────────────────────────────────
 
 INSERT INTO product_ingredients (product_id, ingredient_id)
 SELECT p.id, i.id FROM products p, ingredients i

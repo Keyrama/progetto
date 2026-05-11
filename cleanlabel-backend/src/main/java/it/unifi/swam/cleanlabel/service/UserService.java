@@ -46,17 +46,6 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    // ── Mock auth ─────────────────────────────────────────────────────────────
-
-    /**
-     * Returns a pre-built mock user for the given role string.
-     * Used by the FE to simulate a logged-in session without implementing
-     * real authentication, as per assignment requirements.
-     *
-     * If a user with the mock username already exists in the DB it is returned,
-     * otherwise a transient (non-persisted) instance is returned so the method
-     * works even with an empty database.
-     */
     public UserDTO getMockUser(String roleStr) {
         User.Role role = parseRole(roleStr);
 
@@ -66,8 +55,6 @@ public class UserService {
                 .map(userMapper::toDTO)
                 .orElseGet(() -> buildTransientMockUser(role, mockUsername));
     }
-
-    // ── Internal helpers ──────────────────────────────────────────────────────
 
     private UserDTO buildTransientMockUser(User.Role role, String username) {
         return UserDTO.builder()

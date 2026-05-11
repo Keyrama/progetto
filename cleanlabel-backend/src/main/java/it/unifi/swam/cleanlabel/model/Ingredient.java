@@ -8,11 +8,6 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Represents a single ingredient or food additive.
- * Allergens are declared at ingredient level (e.g. "wheat flour" contains GLUTEN),
- * which allows the system to derive product allergens automatically.
- */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,14 +24,9 @@ public class Ingredient {
     @Column(nullable = false, length = 200)
     private String name;
 
-    /**
-     * additiveCode (E-number) if this is a food additive (e.g. "E621" for MSG).
-     * Null for natural ingredients.
-     */
     @Column(name = "additive_code", length = 10)
     private String additiveCode;
 
-    /** Plain-language explanation of what this ingredient is and its role in food. */
     @Column(length = 1000)
     private String description;
 
@@ -47,15 +37,6 @@ public class Ingredient {
     @Column(name = "risk_level", nullable = false)
     private RiskLevel riskLevel = RiskLevel.LOW;
 
-    /**
-     * Allergens contained in this ingredient.
-     * E.g. "wheat flour" → [GLUTEN].
-     *
-     * LAZY: allergens are only loaded when explicitly accessed (e.g. in
-     * getDeclaredAllergens()). Loading them eagerly would cause N extra
-     * queries every time any ingredient is touched, even when allergens
-     * are not needed (e.g. health score computation, claim validation).
-     */
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "ingredient_allergens",

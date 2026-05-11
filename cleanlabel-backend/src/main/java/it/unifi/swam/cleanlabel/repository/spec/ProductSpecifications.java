@@ -12,11 +12,6 @@ import org.springframework.data.jpa.domain.Specification;
  * allowing any combination of filters in a single query —
  * unlike the previous if-else chain which only applied one filter at a time.
  *
- * Usage example:
- *   Specification<Product> spec = Specification
- *       .where(ProductSpecifications.namOrBrandContains("bio"))
- *       .and(ProductSpecifications.cleanLabelOnly());
- *   productRepository.findAll(spec);
  */
 public class ProductSpecifications {
 

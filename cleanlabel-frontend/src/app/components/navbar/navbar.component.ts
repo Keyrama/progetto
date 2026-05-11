@@ -27,7 +27,6 @@ export class NavbarComponent {
     this.dropdownOpen = !this.dropdownOpen;
   }
 
-  /** Close dropdown when clicking anywhere outside */
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;

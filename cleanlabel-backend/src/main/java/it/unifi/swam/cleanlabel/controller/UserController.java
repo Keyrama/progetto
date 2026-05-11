@@ -28,11 +28,7 @@ public class UserController {
 
     private final UserService userService;
     private final RoleGuard roleGuard;
-
-    /**
-     * Mock login — always open, no role required.
-     * Must be declared BEFORE /{id} to avoid Spring matching "mock" as an id.
-     */
+    
     @GetMapping("/mock/{role}")
     public ResponseEntity<UserDTO> getMockUser(@PathVariable String role) {
         return ResponseEntity.ok(userService.getMockUser(role));

@@ -48,7 +48,6 @@ public class AllergenService {
         allergenRepository.deleteById(id);
     }
 
-    // ── Internal helper ───────────────────────────────────────────────────────
 
     private Allergen getAllergenOrThrow(Long id) {
         return allergenRepository.findById(id)

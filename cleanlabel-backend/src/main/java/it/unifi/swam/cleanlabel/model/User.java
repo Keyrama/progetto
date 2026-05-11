@@ -5,11 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
-/**
- * Registered user of the Clean Label platform.
- * Authentication is mocked per assignment requirements:
- * no password stored, role used directly for access control simulation.
- */
 @Getter
 @Setter
 @NoArgsConstructor

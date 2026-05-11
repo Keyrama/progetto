@@ -9,10 +9,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Validates claims like "no artificial ingredients" or "no artificial additives".
- * Checks that none of the product's ingredients are flagged as artificial.
- */
 @Component
 public class NoArtificialIngredientsValidator implements ClaimValidatorStrategy {
 

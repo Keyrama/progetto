@@ -5,10 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
-/**
- * Nutritional values per 100g/100ml of product.
- * Owned exclusively by one Product (OneToOne).
- */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -41,7 +37,6 @@ public class NutritionalValue {
     @Column(nullable = false)
     private Double salt;
 
-    /** Nullable: not all products declare fiber content */
     @Column
     private Double fiber;
 }

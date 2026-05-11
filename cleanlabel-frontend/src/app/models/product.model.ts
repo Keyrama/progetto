@@ -11,8 +11,6 @@ export type MisleadingReason =
 export type AnalysisStatus = 'MATCHED' | 'UNMATCHED';
 export type Verdict = 'CONFIRMED' | 'CONTRADICTED' | 'UNVERIFIABLE' | 'INCOMPLETE_DATA';
 
-// ── Core entities ─────────────────────────────────────────────────────────────
-
 export interface UserDTO {
   id?: number;
   username: string;
@@ -55,8 +53,6 @@ export interface IngredientDTO {
   allergens?: AllergenDTO[];
 }
 
-// ── Claim library ─────────────────────────────────────────────────────────────
-
 export interface ClaimDefinitionDTO {
   id?: number;
   term: string;
@@ -84,8 +80,6 @@ export interface ProductClaimDTO {
   analyzedAt: string;
 }
 
-// ── Product ───────────────────────────────────────────────────────────────────
-
 export interface ProductDTO {
   id?: number;
   name: string;
@@ -99,16 +93,10 @@ export interface ProductDTO {
   mayContainAllergenIds?: number[];
   mayContainAllergens?: AllergenDTO[];
   sustainabilityScore?: number;
-  // output-only (computed by the backend)
   healthScore?: number;
   cleanLabel?: boolean;
   declaredAllergens?: AllergenDTO[];
-  // Claims are NOT part of ProductDTO.
-  // They are fetched separately via GET /api/products/{id}/claims
-  // and managed in the component as independent session state.
 }
-
-// ── Alternatives ──────────────────────────────────────────────────────────────
 
 export interface AlternativeSuggestionDTO {
   productId: number;
@@ -119,8 +107,6 @@ export interface AlternativeSuggestionDTO {
   scoreDelta: number;
   reason: string;
 }
-
-// ── Claim analysis request ────────────────────────────────────────────────────
 
 export interface ClaimAnalysisRequestDTO {
   rawClaims: string[];

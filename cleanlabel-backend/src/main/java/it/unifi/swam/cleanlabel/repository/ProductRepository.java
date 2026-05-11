@@ -14,19 +14,9 @@ import java.util.List;
 public interface ProductRepository extends JpaRepository<Product, Long>,
         JpaSpecificationExecutor<Product> {
 
-    /**
-     * Used by AlternativeSuggestionService:
-     * finds products in the same category with a higher health score,
-     * ordered best-first.
-     */
     List<Product> findByCategoryAndHealthScoreGreaterThanOrderByHealthScoreDesc(
             ProductCategory category, Integer healthScore);
 
-    /**
-     * Full-text search on name and brand (case-insensitive).
-     * Used by ProductSpecifications — kept here because JPQL LIKE is cleaner
-     * than a Criteria API LIKE for a simple two-field search.
-     */
     @Query("SELECT p FROM Product p WHERE " +
             "LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             "LOWER(p.brand) LIKE LOWER(CONCAT('%', :query, '%'))")

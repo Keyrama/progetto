@@ -6,16 +6,6 @@ import it.unifi.swam.cleanlabel.model.Product;
 import it.unifi.swam.cleanlabel.model.ValidationResult;
 import org.springframework.stereotype.Component;
 
-/**
- * Validates fat-related claims such as "low fat" or "reduced fat".
- *
- * EU thresholds (Reg. 1924/2006):
- *   "low fat"      → fats <= 3g/100g for solids (default threshold)
- *   "fat free"     → fats <= 0.5g/100g
- *
- * The exact threshold is taken from the ClaimDefinition.validationThreshold field,
- * so different claims can share this validator with different cutoffs.
- */
 @Component
 public class FatReducedValidator implements ClaimValidatorStrategy {
 

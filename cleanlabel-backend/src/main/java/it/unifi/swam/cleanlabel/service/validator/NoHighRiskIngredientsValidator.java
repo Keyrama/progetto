@@ -9,10 +9,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Validates claims like "no high risk additives".
- * Checks that none of the product's ingredients have RiskLevel.HIGH.
- */
 @Component
 public class NoHighRiskIngredientsValidator implements ClaimValidatorStrategy {
 

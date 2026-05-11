@@ -42,8 +42,6 @@ public class ProductController {
     private final AlternativeSuggestionService alternativeSuggestionService;
     private final RoleGuard roleGuard;
 
-    // ── Open endpoints (all roles) ─────────────────────────────────────────────
-
     @GetMapping
     public ResponseEntity<List<ProductDTO>> getAll(
             @RequestParam(required = false) String search,
@@ -74,8 +72,6 @@ public class ProductController {
         return ResponseEntity.ok(alternativeSuggestionService.findAlternatives(id, limit));
     }
 
-    // ── SPECIALIST + CORPORATE ─────────────────────────────────────────────────
-
     @GetMapping("/{id}/claims")
     public ResponseEntity<List<ProductClaimDTO>> getClaims(
             @PathVariable Long id,
@@ -98,8 +94,6 @@ public class ProductController {
         roleGuard.require(httpRequest, User.Role.SPECIALIST, User.Role.CORPORATE);
         return ResponseEntity.ok(claimAnalysisService.analyzeClaims(id, request.getRawClaims()));
     }
-
-    // ── CORPORATE only ─────────────────────────────────────────────────────────
 
     @PostMapping
     public ResponseEntity<ProductDTO> create(

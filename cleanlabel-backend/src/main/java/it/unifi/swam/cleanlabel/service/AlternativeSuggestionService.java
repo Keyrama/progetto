@@ -10,15 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * Computes healthier product alternatives at runtime — no persistence.
- *
- * A product is considered an alternative when:
- *   - it belongs to the same category as the source product
- *   - it has a strictly higher health score
- *
- * Results are ordered by health score descending and capped by the limit param.
- */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -43,8 +34,6 @@ public class AlternativeSuggestionService {
                 .map(target -> toDTO(source, target))
                 .toList();
     }
-
-    // ── Private helpers ───────────────────────────────────────────────────────
 
     private AlternativeSuggestionDTO toDTO(Product source, Product target) {
         int delta = target.getHealthScore() - source.getHealthScore();

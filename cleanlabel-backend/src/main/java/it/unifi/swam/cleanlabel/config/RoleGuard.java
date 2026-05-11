@@ -9,29 +9,12 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-/**
- * Mock role-based access control guard.
- *
- * Real authentication is not implemented per assignment requirements.
- * Instead, callers include the header:
- *
- *   X-Mock-User-Role: CONSUMER | SPECIALIST | CORPORATE
- *
- * If the header is absent, the request is allowed through (open access mode,
- * useful for testing with curl or Postman without setting headers).
- * If the header is present but the role is not in the allowed list, a 403 is thrown.
- *
- * Usage in controllers:
- *   roleGuard.require(request, User.Role.SPECIALIST, User.Role.CORPORATE);
- */
 @Component
 public class RoleGuard {
 
     public static final String ROLE_HEADER = "X-Mock-User-Role";
 
     /**
-     * Checks that the role declared in X-Mock-User-Role is among the allowed ones.
-     * No-op if the header is absent.
      *
      * @param request  the incoming HTTP request
      * @param allowed  one or more roles that are permitted to perform this operation
@@ -59,11 +42,6 @@ public class RoleGuard {
         }
     }
 
-    /**
-     * Returns the role declared in the request header, or null if absent.
-     * Useful for read operations that want to tailor the response by role
-     * without blocking access entirely.
-     */
     public User.Role extract(HttpServletRequest request) {
         String headerValue = request.getHeader(ROLE_HEADER);
         if (headerValue == null || headerValue.isBlank()) return null;
